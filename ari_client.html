@@ -6,15 +6,17 @@
         defaults: {             
             name: {value:""},
             server: {value:"", type:"asterisk_ari"},
-            sip_user: {value:""},
-            sip_password: {value:""}
+            app_name: {value:"TestApp"},
+            //sip_user: {value:""},
+            //sip_password: {value:""}
+
         },
-        outputs: 2,
-        outputLabels: ["call", "dtmf"],        
-        label: function() {     
-            return this.name||"Endpoint";
+        outputs: 3,
+        outputLabels: ["call", "dtmf","Debug"],
+        label: function() {
+            return this.name||"Ari App";
         },
-        palletteLabel: "Endpoint"
+        palletteLabel: "ARI App"
     });
 </script>
 
@@ -24,47 +26,65 @@
          <input type="text" id="node-input-name" placeholder="Name">
      </div>
      <div class="form-row">
-        <label for="node-config-input-server"></i>Asterisk Server</label>
+        <label for="node-config-input-server"><i class="fa fa-tag"></i>Asterisk Server</label>
         <input type="text" id="node-input-server" >
     </div>
     <div class="form-row">
-        <label for="node-input-sip_user"><i class="fa fa-tag"></i>SIP User</label>
-        <input type="text" id="node-input-sip_user" placeholder="100">
+        <label for="node-input-app_name"><i class="fa fa-tag"></i>Application Name</label>
+        <input type="text" id="node-input-app_name" placeholder="Test-App">
     </div>
-    <div class="form-row">
-        <label for="node-input-sip_password"><i class="fa fa-tag"></i>SIP Password</label>
-        <input type="text" id="node-input-sip_password" placeholder="xxx">
-    </div>
+
  </script>
- 
- 
+
+
  <!-- Next, some simple help text is provided for the node.                   -->
  <script type="text/html" data-help-name="ari_client">
     <!-- data-help-name identifies the node type this help is for             -->
     <!-- This content appears in the Info sidebar when a node is selected     -->
     <!-- The first <p> is used as the pop-up tool tip when hovering over a    -->
     <!-- node in the palette.                                                 -->
-    <p>Simple sample input node. Just sends a single message when it starts up.
-    This is not very useful.</p>
+    <p>Simple sample input node. Just sends a single message when it starts up. Ver2 Update: Removed data PJSIP</p>
     <p>Outputs an object called <b>msg</b> containing <b>msg.topic</b> and
     <b>msg.payload</b>. msg.payload is a String.</p>
  </script>
 
  <script type="text/javascript">
     RED.nodes.registerType('ari_playback',{
-        category: 'asterisk',      
+        category: 'asterisk',
         color: '#FF9966',
         icon: 'font-awesome/fa-asterisk',
-        defaults: {             
+        defaults: {
             name: {value:""},
-            media: {value:""}
+            media2: {value:""},
+            media2Type:{value:"msg"}
         },
         inputs:1,
-        outputs:1,              
-        label: function() {     
+        outputs:1,
+        label: function() {
             return this.name||"ARI Playback";
         },
-        palletteLabel: "ARI Playback"
+        palletteLabel: "ARI Playback",
+
+        oneditprepare: function() {
+            $('#node-input-media2').typedInput({
+                default: '',
+                typeField: $("#node-input-media2Type"),
+                //type:"msg",
+                types: ["msg", "flow","global","str"],
+            });
+        },
+        oneditsave: function() {
+            //this.exampleText = this.editor.getValue();
+            //this.editor.destroy();
+            media2Type=$('#node-input-media2Type').val()
+            delete this.editor;
+        },
+        oneditcancel: function() {
+            this.editor.destroy();
+            delete this.editor;
+        },
+
+
     });
 </script>
 
@@ -74,12 +94,13 @@
          <input type="text" id="node-input-name" placeholder="Name">
      </div>
     <div class="form-row">
-        <label for="node-input-media"><i class="fa fa-tag"></i>Media</label>
-        <input type="text" id="node-input-media" placeholder="sound:weasels-eaten-phonesys">
+        <label for="node-input-media2"><i class="fa fa-tag"></i>Or media in var</label>
+        <input type="text" id="node-input-media2" style="width:70%">
+        <input type="hidden" id="node-input-media2Type">
     </div>
  </script>
- 
- 
+
+
  <!-- Next, some simple help text is provided for the node.                   -->
  <script type="text/html" data-help-name="ari_playback">
     <!-- data-help-name identifies the node type this help is for             -->
@@ -96,18 +117,19 @@
 
  <script type="text/javascript">
     RED.nodes.registerType('ari_hangup',{
-        category: 'asterisk',      
+        category: 'asterisk',
         color: '#FF6633',
         icon: 'font-awesome/fa-asterisk',
-        defaults: {             
+        defaults: {
             name: {value:""}
         },
         inputs:1,
-        label: function() {     
+        label: function() {
             return this.name||"ARI Hangup";
         },
-        palletteLabel: "ARI Playback"
+        palletteLabel: "ARI Hangup"
     });
+
 </script>
 
 <script type="text/html" data-template-name="ari_hangup">

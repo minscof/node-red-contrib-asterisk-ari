@@ -10,15 +10,16 @@ module.exports = function(RED) {
         var connections = {};
         var channels = {}
         var obj = {
-            setconn: function(url,username,password, app, node) {
+            setconn: function(url,username,password, node) {
                 var id = uuid.v4()
                 ari.connect(url, username, password, function(err, client){
                     if (err) {
                         node.error(err);
+                        return
                       }
-                    var id = client.id
+                    var id = uuid.v4(client._connection.host)
                     connections[id] =client
-                    clientLoaded(client, app, node,id)
+                    clientLoaded(client, node.app_name, node,id)
                 });
                 //connections[id]._id = id;
                 //connections[id]._nodeCount = 0;
@@ -37,17 +38,24 @@ module.exports = function(RED) {
             setchan: function(channel){
                 var id = channel.id
                 channels[id] = channel
+                channel.on('StasisEnd', function (event, channel) {
+                    //console.log(`Channel ${channel} HANGUP`)
+                    delete channels[id]
+                })
                 return id
             },
             getchan: function(id){
                 return channels[id]
+            },
+            getchans: function() {
+                return channels
             }
         };
         return obj;
     }());
 
-    function clientLoaded (client, app, node, id) {      
-        node.status({fill:"green",shape:"dot",text:"connected"});
+    function clientLoaded (client, app, node, id) {
+        node.status({fill:"green",shape:"dot",text:`connected to ${node.app_name}`});
         function stasisStart(event, channel) {
             var dialed = event.args[0] === 'dialed';
             if (!dialed){
@@ -58,7 +66,7 @@ module.exports = function(RED) {
                 msg.payload = event
                 node.send([msg, null])
             }
-            
+
         }
         function stasisEnd(event, channel){
             //console.log(event)
@@ -71,7 +79,7 @@ module.exports = function(RED) {
             node.send([null, msg])
 
         }
-        client.on('StasisStart', stasisStart); 
+        client.on('StasisStart', stasisStart);
         //client.on('StasisEnd', stasisEnd);
         client.on('ChannelDtmfReceived', dtmfEvent);
         client.start(app);
@@ -80,11 +88,14 @@ module.exports = function(RED) {
     function ari_client(n) {
         RED.nodes.createNode(this,n);
         var node = this;
-        this.sip_user = n.sip_user
-        this.sip_password = n.sip_password
+        //this.sip_user = n.sip_user
+        //this.sip_password = n.sip_password
         this.server = RED.nodes.getNode(n.server);
-        provision(this.server.credentials.url, this.server.credentials.username, this.server.credentials.password, this.sip_user, this.sip_password)
-        this.conn = ariConnectionPool.setconn(this.server.credentials.url, this.server.credentials.username, this.server.credentials.password, this.sip_password, node)
+        this.app_name = n.app_name;
+        //provision(this.server.credentials.url, this.server.credentials.username, this.server.credentials.password, this.sip_user, this.sip_password)
+        provision(this.server.credentials.url, this.server.credentials.username, this.server.credentials.password)
+        //this.conn = ariConnectionPool.setconn(this.server.credentials.url, this.server.credentials.username, this.server.credentials.password, this.sip_password, node)
+        this.conn = ariConnectionPool.setconn(this.server.credentials.url, this.server.credentials.username, this.server.credentials.password, node)
         this.on("close", function() {
             //deprovision(this.server.credentials.url, this.server.credentials.username, this.server.credentials.password, this.sip_user)
             //this.conn.close()
@@ -92,26 +103,73 @@ module.exports = function(RED) {
     }
     RED.nodes.registerType("ari_client",ari_client);
 
-
-
     function ari_playback(n) {
         RED.nodes.createNode(this,n);
         var node = this;
+        node.config = n;
         this.media = n.media
         node.on('input', function (msg) {
-          node.status({fill:"blue",shape:"dot"});
-          var client = ariConnectionPool.getconn(msg.client)
-          var channel = ariConnectionPool.getchan(msg.channel)
-          var playback = client.Playback();
-          channel.play({media: this.media},
-                            playback, function(err, newPlayback) {if (err) {throw err;}});
-          playback.on('PlaybackFinished', function(event, completedPlayback) {
-            msg.payload = event
-            node.send(msg)
-            node.status({})
-          });
-        });         
-          
+            this.media2 = RED.util.evaluateNodeProperty(node.config.media2, node.config.media2Type, node,msg);
+            //this.media2 = node.media2
+            var client = ariConnectionPool.getconn(msg.client)
+            var channel = ariConnectionPool.getchan(msg.channel)
+            if (typeof channel !=='undefined'){
+                node.status({fill:"blue",shape:"dot",text:`playing ${this.media2}`});
+                var playback = client.Playback();
+                channel.play({media: this.media2}, playback)
+                    .then(function(playback) {
+                        playback.on('PlaybackFinished', function (event, completedPlayback) {
+                            //console.log(`Finish ${playback.id}`)
+                            msg.payload = event
+                            node.send(msg)
+                            node.status({})
+                        });
+                    })
+                    .catch(function (err){
+                        console.error(`Playback filed ${err}`)
+                        node.send(msg)
+                        node.status({})
+                    });
+            } else {
+                node.status({})
+            }
+
+            //playback.on('PlaybackFinished', function(event, completedPlayback) {
+            //    msg.payload = event
+            //    node.send(msg)
+            //    node.status({})
+            //});
+
+            //console.log(`Starting ${this.media2}`)
+            //client.channels.play({
+            //    media: this.media2,
+            //    channelId:channel.id,
+            //    playbackId: playback.id
+            //}, function (err,playback){
+            //    if (err) {
+            //        console.error(`Playback failed:${err}`)
+            //        node.send(msg)
+            //        node.status({})
+//
+            //    } else {
+            //        msg.payload = true
+            //        node.send(msg)
+            //        node.status({})
+            //        console.log(`Finish ${playback.id}`)
+            //    }
+            //})
+
+
+
+            //channel.play({media: this.media2},
+            //                  playback, function(err, newPlayback) {if (err) {throw err;}});
+            //playback.on('PlaybackFinished', function(event, completedPlayback) {
+            //    msg.payload = event
+            //    node.send(msg)
+            //    node.status({})
+            //});
+        });
+
         this.on("close", function() {
               // Called when the node is shutdown - eg on redeploy.
               // Allows ports to be closed, connections dropped etc.
@@ -129,9 +187,9 @@ module.exports = function(RED) {
             channel.hangup(function(err) {
                 if (err) {node.error(err);}
                 node.status({})
-            });            
+            });
         });
-    } 
+    }
     RED.nodes.registerType("ari_hangup",ari_hangup);
 
 
@@ -148,8 +206,8 @@ module.exports = function(RED) {
             node.send(msg)
             node.status({})
           });
-        });         
-          
+        });
+
         this.on("close", function() {
               // Called when the node is shutdown - eg on redeploy.
               // Allows ports to be closed, connections dropped etc.
@@ -157,7 +215,7 @@ module.exports = function(RED) {
         });
     }
     RED.nodes.registerType("ari_answer",ari_answer);
-    
+
     function ari_bridgedial(n){
         RED.nodes.createNode(this,n);
         var node = this;
@@ -207,7 +265,7 @@ module.exports = function(RED) {
             if (n.ended_event) {
                 node.send([null, msg])
             }
-            
+
             node.status({});
           });
           channel.on('ChannelDtmfReceived', function(event, channel){
@@ -241,9 +299,20 @@ module.exports = function(RED) {
     RED.nodes.registerType("ari_bridgedial",ari_bridgedial);
 }
 
-function provision(url,username,password, sip_user, sip_password){
+//function provision(url,username,passwordd) {
+function provision(url,username,password) {
     ari.connect(url, username, password)
-    .then(function (client){
+        .then(function (ari){
+            console.log(ari.bridges);
+            console.log(ari.channels);
+            console.log(ari.endpoints);
+        })
+        .catch(function (err) {
+            console.log(err)
+        })
+}
+
+    /*.then(function (client){
         client.asterisk.updateObject({
           configClass: 'res_pjsip',
           id: sip_user,
@@ -292,11 +361,12 @@ function provision(url,username,password, sip_user, sip_password){
     })
     .catch(function (err) {
         console.log(err)
-    });
-  
-  }
-  
-  function deprovision(url,username,password, sip_user){
+    });*/
+
+
+
+//  function deprovision(url,username,password, sip_user){
+  function deprovision(url,username,password){
     ari.connect(url, username, password)
     .then(function (client){
         client.asterisk.deleteObject({
