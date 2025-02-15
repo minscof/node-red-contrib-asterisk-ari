@@ -2,16 +2,16 @@ name: Publish to npm
 
 on:
   release:
-    types: [created]  # Déclenche quand une nouvelle release est créée sur GitHub
+    types: [created]  # Déclenche quand une nouvelle release est créée
+  workflow_dispatch:  # Permet de lancer manuellement
 
 jobs:
   publish:
     runs-on: ubuntu-latest
-  workflow_dispatch:  # Permet un déclenchement manuel
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3  # Télécharge le repo GitHub
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
