@@ -77,7 +77,7 @@ ari show user                  -- List single ARI user
 manual installation for dev
  cd ~  
  git clone http://...  
- cd ~/nodered-asterisk-ari
+ cd ~/.node-red
  remove line after dependencies  
  "nodered-contrib-asterisk-ari-2025": "file:../node-red-asterisk-ari"  
  in file ~/.nodered/package.json  
@@ -85,7 +85,7 @@ manual installation for dev
  -> remove packages for nodered-asterisk-ari  
  then  
  npm install ~/nodered-asterisk-ari/  
- -> install updated packeges  
+ -> install updated packages  
   
 run node-red  
 node --inspect $(which node-red)  

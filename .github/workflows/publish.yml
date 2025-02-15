@@ -3,6 +3,7 @@ name: Publish to npm
 on:
   release:
     types: [created]  # Déclenche quand une nouvelle release est créée sur GitHub
+  workflow_dispatch:  # Permet un déclenchement manuel
 
 jobs:
   publish:

@@ -9,7 +9,7 @@
   "keywords": [
     "node-red"
   ],
-  "author": "",
+  "author": "Minscof",
   "license": "MIT",
   "node-red": {
     "nodes": {
@@ -19,5 +19,8 @@
   },
   "dependencies": {
     "ari-client": "^2.2.0"
+  },
+  "resolutions": {
+  "cookiejar": "2.1.4"
   }
 }
