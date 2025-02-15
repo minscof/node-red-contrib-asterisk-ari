@@ -7,6 +7,7 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+  workflow_dispatch:  # Permet un déclenchement manuel
 
     steps:
       - name: Checkout repository
