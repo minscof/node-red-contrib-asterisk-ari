@@ -1,6 +1,6 @@
 {
-  "name": "nodered-contrib-asterisk-ari-2022",
-  "version": "2022.0.0",
+  "name": "nodered-contrib-asterisk-ari-2025",
+  "version": "2025.0.1",
   "description": "Package for Controlling Asterisk via ARI",
   "main": "main.js",
   "scripts": {
@@ -19,6 +19,6 @@
   },
   "dependencies": {
     "ari-client": "^2.2.0",
-    "uuid": "^7.0.2"
+    "uuid": "^11.0.0"
   }
 }

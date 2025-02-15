@@ -7,25 +7,33 @@
             name: {value:""},
             server: {value:"", type:"asterisk_ari"},
             app_name: {value:"TestApp"},
-            //sip_user: {value:""},
-            //sip_password: {value:""}
-
+            topics: {value:""}
         },
-        outputs: 3,
-        outputLabels: ["call", "dtmf","Debug"],
+        outputs: 2,
+        outputLabels: ["Event", "Dtmf"],
         label: function() {
             return this.name||"Ari App";
         },
-        palletteLabel: "ARI App"
+        palletteLabel: "ARI App",
+
+        oneditprepare: function() {
+            // Préparer la sélection multiple à l'ouverture de l'éditeur
+            const selectedValues = this.topics || [];
+            $('#node-input-topics').val(selectedValues);
+        },
+        oneditsave: function() {
+            // Sauvegarder les valeurs sélectionnées
+            this.topics = $('#node-input-topics').val() || [];
+        }
     });
 </script>
 
 <script type="text/html" data-template-name="ari_client">
-     <div class="form-row">
-         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-         <input type="text" id="node-input-name" placeholder="Name">
-     </div>
-     <div class="form-row">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
         <label for="node-config-input-server"><i class="fa fa-tag"></i>Asterisk Server</label>
         <input type="text" id="node-input-server" >
     </div>
@@ -33,22 +41,177 @@
         <label for="node-input-app_name"><i class="fa fa-tag"></i>Application Name</label>
         <input type="text" id="node-input-app_name" placeholder="Test-App">
     </div>
+    <div class="form-row">
+        <label for="node-input-topics"><i class="fa fa-tag"></i>Topics</label>
+        <!--input type="text" id="node-input-topics" placeholder="StasisStart"-->
+        
+        <select id="node-input-topics" name="node-input-topics" size="5" multiple>
+            <option selected="selected">StasisStart</option>
+            <option>StasisEnd</option>
+            <option>ContactStatusChange</option>
+            <option>DeviceStateChanged</option>
+            <option>EndpointStateChange</option>
+            <option>Dial</option>
+            <option>ChannelConnectedLine</option>
+            
+            <!--option>All</option-->
+            <option>ChannelHangupRequest</option>
+            <option>TextMessageReceived</option>
+            <option>ApplicationMoveFailed</option>
+            <option>ApplicationReplaced</option>
+            <option>BridgeCreated</option>
+            <option>BridgeDestroyed</option>
+            <option>BridgeMerged</option>
+            <option>BridgeBlindTransfer</option>
+            <option>BridgeAttendedTransfer</option>
+            <option>BridgeVideoSourceChanged</option>
+            <option>ChannelCreated</option>
+            <option>ChannelDestroyed</option>
+            <option>ChannelEnteredBridge</option>
+            <option>ChannelLeftBridge</option>
+            <option>ChannelStateChange</option>
+            <option>ChannelDtmfReceived</option>
+            <option>ChannelDialplan</option>
+            <option>ChannelCallerId</option>
+            <option>ChannelUserevent</option>
+            <option>ChannelVarset</option>
+            <option>ChannelToneDetected</option>
+            <option>ChannelTalkingStarted</option>
+            <option>ChannelTalkingFinished</option>
+            <option>ChannelHold</option>
+            <option>ChannelUnhold</option>
+            <option>Chocolate Shake</option>
+            <option>PeerStatusChange</option>
+            <option>PlaybackStarted</option>
+            <option>PlaybackContinuing</option>
+            <option>PlaybackFinished</option>
+            <option>RecordingStarted</option>
+            <option>RecordingFinished</option>
+            <option>RecordingFailed</option>
+          </select>
+    </div>
 
- </script>
+</script>
 
 
- <!-- Next, some simple help text is provided for the node.                   -->
- <script type="text/html" data-help-name="ari_client">
+<!-- Next, some simple help text is provided for the node.                   -->
+<script type="text/html" data-help-name="ari_client">
     <!-- data-help-name identifies the node type this help is for             -->
     <!-- This content appears in the Info sidebar when a node is selected     -->
     <!-- The first <p> is used as the pop-up tool tip when hovering over a    -->
     <!-- node in the palette.                                                 -->
-    <p>Simple sample input node. Just sends a single message when it starts up. Ver2 Update: Removed data PJSIP</p>
-    <p>Outputs an object called <b>msg</b> containing <b>msg.topic</b> and
-    <b>msg.payload</b>. msg.payload is a String.</p>
- </script>
+    <p>Connect to asterisk and receive all the events to the application</p>
+    
+    <p>event values 
+    <ul>
+        <li>StasisStart,</li>
+        <li>ChannelHangupRequest,</li>
+        <li>StasisEnd,</li>
+        <li>others...</li>
+    </ul>
+    </p>
 
- <script type="text/javascript">
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload
+            <span class="property-type">object</span>
+        </dt>
+        <dd>
+            Each incoming message's <code>payload</code> will be added to an internal buffer. Once the buffer is full or a certain interval has passed, the messages are sent to the configured backend.
+        </dd>
+    </dl>
+
+    
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>Event</dt>
+        <dd>
+            <p>Output an object called <b>msg</b> containing 
+                <b>msg.payload</b>. msg.payload is composed of 
+                <ul>
+                    <li><b>event</b> (string), </li>
+                    <li><b>channel</b> (object),</li>
+                    <li><b>details</b> (object)</li>
+                    <li><b>_msgid</b> (string).</li>
+                    
+                </ul>
+            </p>
+            This node does not produce any output. It sends data directly to a backend API.
+        </dd>
+        <dt>Dtmf</dt>
+        <dd>
+            <p>Output an object called <b>msg</b> containing 
+                <b>msg.payload</b>. msg.payload is composed of 
+                <ul>
+                    <li><b>event</b> (string), </li>
+                </ul>
+            </p>
+            
+        </dd>
+        <dt>Debug</dt>
+        <dd>
+            <p>Output an object called <b>msg</b> containing 
+                <b>msg.payload</b>. msg.payload is composed of 
+                <ul>
+                    <li><b>event</b> (string), </li>   
+                </ul>
+            </p>
+            This node does not produce any output. It sends data directly to a backend API.
+        </dd>
+    </dl>
+
+    <h3>Details</h3>
+    <p>
+        The "Status Storer" node works as follows:
+        <ul>
+            <li>Each incoming message's <code>payload</code> is stored in a buffer.</li>
+            <li>Once the buffer reaches a certain size (specified by the <code>bufferSize</code> parameter), or after a defined interval (specified by the <code>flushInterval</code> parameter), the contents of the buffer are sent in a single POST request to the backend API.</li>
+            <li>The backend URL, access token, buffer size, and flush interval can be configured in the node settings, or overridden by values in the incoming message's request body.</li>
+        </ul>
+    </p>
+
+    <h3>Node Configuration</h3>
+    <dl class="message-properties">
+        <dt>application name
+            <span class="property-type">string</span>
+        </dt>
+        <dd>
+            The name of the stasis application to register. Put this name in the dialplan. ex exten => _+.,1,Stasis(TestApp)
+            Default: <code>TestApp</code>.
+        </dd>
+
+        <dt>Asterisk server
+            <span class="property-type">object</span>
+        </dt>
+        <dd>
+            The id of the Asterisk server to use.
+        </dd>
+
+    </dl>
+
+    <h3>Examples of Use:</h3>
+    <ul>
+        <li><strong>Example 1:</strong>
+            <ul>
+                <li>Configuration: <code>bufferSize=2</code>, <code>flushInterval=5000</code>.</li>
+                <li>Behavior: After receiving two messages, they will be sent as a bulk request to the backend.</li>
+            </ul>
+        </li>
+        <li><strong>Example 2:</strong>
+            <ul>
+                <li>Configuration: <code>bufferSize=10</code>, <code>flushInterval=30000</code>.</li>
+                <li>Behavior: Messages are sent in batches of 10, or after 30 seconds if fewer than 10 messages have been received.</li>
+            </ul>
+        </li>
+    </ul>
+
+    <p>
+        This node receives all the events for the stasis application configured in the dialplan.
+    </p>
+
+</script>
+
+<script type="text/javascript">
     RED.nodes.registerType('ari_playback',{
         category: 'asterisk',
         color: '#FF9966',
@@ -83,39 +246,34 @@
             this.editor.destroy();
             delete this.editor;
         },
-
-
     });
 </script>
 
 <script type="text/html" data-template-name="ari_playback">
-     <div class="form-row">
-         <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
-         <input type="text" id="node-input-name" placeholder="Name">
-     </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
     <div class="form-row">
         <label for="node-input-media2"><i class="fa fa-tag"></i>Or media in var</label>
         <input type="text" id="node-input-media2" style="width:70%">
         <input type="hidden" id="node-input-media2Type">
     </div>
- </script>
+</script>
 
 
- <!-- Next, some simple help text is provided for the node.                   -->
- <script type="text/html" data-help-name="ari_playback">
+<!-- Next, some simple help text is provided for the node.                   -->
+<script type="text/html" data-help-name="ari_playback">
     <!-- data-help-name identifies the node type this help is for             -->
     <!-- This content appears in the Info sidebar when a node is selected     -->
     <!-- The first <p> is used as the pop-up tool tip when hovering over a    -->
     <!-- node in the palette.                                                 -->
-    <p>Simple sample input node. Just sends a single message when it starts up.
-    This is not very useful.</p>
-    <p>Outputs an object called <b>msg</b> containing <b>msg.topic</b> and
-    <b>msg.payload</b>. msg.payload is a String.</p>
- </script>
+    <p>Input and output node. Just sends a sound message when it starts up.
+    </p> 
+</script>
 
 
-
- <script type="text/javascript">
+<script type="text/javascript">
     RED.nodes.registerType('ari_hangup',{
         category: 'asterisk',
         color: '#FF6633',
@@ -129,22 +287,22 @@
         },
         palletteLabel: "ARI Hangup"
     });
-
 </script>
 
 <script type="text/html" data-template-name="ari_hangup">
-     <div class="form-row">
-         <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
-         <input type="text" id="node-input-name" placeholder="Name">
-     </div>
-
- </script>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
  
  
  <!-- Next, some simple help text is provided for the node.                   -->
  <script type="text/html" data-help-name="ari_hangup">
     <p> Hangup The Channel</p>
  </script>
+
+ <!-- ari_answer section  start                                                -->
 
  <script type="text/javascript">
     RED.nodes.registerType('ari_answer',{
@@ -164,14 +322,43 @@
 </script>
 
 <script type="text/html" data-template-name="ari_answer">
-     <div class="form-row">
-         <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
-         <input type="text" id="node-input-name" placeholder="Name">
-     </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
 
- </script>
+<!-- ari_answer section  end                                                -->
 
- <script type="text/javascript">
+<!-- ari_continueindialplan section  start                                                -->
+
+<script type="text/javascript">
+    RED.nodes.registerType('ari_continueindialplan',{
+        category: 'asterisk',      
+        color: '#66ff66',
+        icon: 'font-awesome/fa-asterisk',
+        defaults: {             
+            name: {value:""}
+        },
+        inputs:1,
+        outputs: 1,
+        label: function() {     
+            return this.name||"Continue in dialplan";
+        },
+        palletteLabel: "Continue in dialplan"
+    });
+</script>
+
+<script type="text/html" data-template-name="ari_continueindialplan">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<!-- ari_continueindialplan section  end                                                -->
+
+<script type="text/javascript">
     RED.nodes.registerType('ari_bridgedial',{
         category: 'asterisk',      
         color: '#339933',
@@ -183,7 +370,6 @@
             connected_event : {value: false},
             ended_event : {value: false},
             dtmf_event : {value: false}
-
         },
         inputs:1,
         outputs: 2,
@@ -196,11 +382,11 @@
 </script>
 
 <script type="text/html" data-template-name="ari_bridgedial">
-     <div class="form-row">
-         <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
-         <input type="text" id="node-input-name" placeholder="Name">
-     </div>
-     <div class="form-row">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
         <label for="node-input-destination"><i class="fa fa-tag"></i>Destination</label>
         <input type="text" id="node-input-destination" placeholder="PJSIP/1000">
     </div>
@@ -221,5 +407,4 @@
         <label for="node-input-destination"><i class="fa fa-tag"></i>DTMF</label>
         <input type="checkbox" id="node-input-ended_event" >
     </div>
-
  </script>
