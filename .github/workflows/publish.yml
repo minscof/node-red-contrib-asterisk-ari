@@ -4,7 +4,7 @@ on:
   release:
     types: [created]  # Déclenche quand une nouvelle release est créée
   workflow_dispatch:  # Permet un déclenchement manuel
-git 
+
 jobs:
   publish:
     runs-on: ubuntu-latest
