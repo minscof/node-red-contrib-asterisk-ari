@@ -38,5 +38,8 @@
   },
   "resolutions": {
   "cookiejar": "2.1.4"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
   }
 }
