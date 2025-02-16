@@ -1,6 +1,7 @@
 # node-red-contrib-asterisk-ari
 
-## $\text{\color{green}{This module is a fork from Sam Machin }}$
+
+<span style="color:green">This module is a fork from [Sam Machin](https://github.com/sammachin/nodered-asterisk-ari)</span>
 
 node-red-contrib-asterisk-ari is a module for nodered to manage Asterisk IPBX communications.
 

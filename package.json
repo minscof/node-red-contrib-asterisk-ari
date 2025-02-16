@@ -13,8 +13,13 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 0"
   },
-  "keywords": [
-    "node-red"
+ "keywords": [
+    "node-red",
+    "node-red-node",
+    "node-red-contrib",
+    "asterisk",
+    "ari",
+    "voip"
   ],
   "author": "Minscof",
   "repository": {
