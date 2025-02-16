@@ -33,7 +33,7 @@ Install via npm
 
 ```shell
 $ cd ~/.node-red
-$ npm install node-red-contrib-asterisk-ari
+$ npm install @minscof/node-red-contrib-asterisk-ari
 # then restart node-red
 ```
 

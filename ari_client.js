@@ -375,18 +375,20 @@ module.exports = function(RED) {
     function ari_playback(n) {
         RED.nodes.createNode(this,n);
         var node = this;
-        this.media = n.media
+        node.config = n;
         node.on('input', function (msg) {
           node.status({fill:"blue",shape:"dot"});
-          var client = ariConnectionPool.getconn(msg.client)
-          var channel = ariConnectionPool.getchan(msg.channel)
+          this.media2 = RED.util.evaluateNodeProperty(node.config.media2, node.config.media2Type, node, msg);
+          var client = ariConnectionPool.getconn(msg.client);
+          var channel = ariConnectionPool.getchan(msg.channel);
           var playback = client.Playback();
-          channel.play({media: this.media},
+          console.debug(`debug playback ${this.media2}`);
+          channel.play({media: this.media2},
                             playback, function(err, newPlayback) {if (err) {throw err;}});
           playback.on('PlaybackFinished', function(event, completedPlayback) {
-            msg.payload = event
-            node.send(msg)
-            node.status({})
+            msg.payload = event;
+            node.send(msg);
+            node.status({});
           });
         });         
           
@@ -404,10 +406,10 @@ module.exports = function(RED) {
         var node = this;
         node.on('input', function (msg) {
           node.status({fill:"blue",shape:"dot"});
-            var channel = ariConnectionPool.getchan(msg.channel)
+            var channel = ariConnectionPool.getchan(msg.channel);
             channel.hangup(function(err) {
-                if (err) {node.error(err);}
-                node.status({})
+                if (err) {node.error(err);};
+                node.status({});
             });            
         });
     } 
@@ -452,8 +454,8 @@ module.exports = function(RED) {
         var node = this;
         node.on('input', function (msg) {
           node.status({fill:"blue",shape:"dot"});
-          var client = ariConnectionPool.getconn(msg.client)
-          var channel = ariConnectionPool.getchan(msg.channel)
+          var client = ariConnectionPool.getconn(msg.client);
+          var channel = ariConnectionPool.getchan(msg.channel);
           client.channels.continueInDialplan({channelId: channel.id},function (err) {
             if (err) {
                 node.error(err);
@@ -477,74 +479,74 @@ module.exports = function(RED) {
     function ari_bridgedial(n){
         RED.nodes.createNode(this,n);
         var node = this;
-        this.destination = n.destination
-        this.callerId = n.callerId
+        this.destination = n.destination;
+        this.callerId = n.callerId;
         node.on('input', function (msg) {
           node.status({fill:"blue",shape:"dot"});
-          var client = ariConnectionPool.getconn(msg.client)
-          var channel = ariConnectionPool.getchan(msg.channel)
+          var client = ariConnectionPool.getconn(msg.client);
+          var channel = ariConnectionPool.getchan(msg.channel);
           // Create outbound channel
           var dialed = client.Channel();
           var bridge = client.Bridge();
-          var bridgeid = bridge.id
-          bridge.create({type: 'mixing, dtmf_events'}, function(err) {if (err) {throw err;}})
+          var bridgeid = bridge.id;
+          bridge.create({type: 'mixing, dtmf_events'}, function(err) {if (err) {throw err;}});
           client.start(bridgeid);
           dialed.on('StasisStart', function(event, dialed) {
-            dialed.continue(function(err) {if (err) {throw err;}})
+            dialed.continue(function(err) {if (err) {throw err;}});
             bridge.addChannel({channel: [channel.id, dialed.id]}, function(err) {if (err) {throw err;}});
-            var channelid = ariConnectionPool.setchan(dialed)
-            var bmsg = {}
-            bmsg.channel = channelid
-            bmsg.client = client.id
-            msg.type = "connected"
-            bmsg.type = "connected"
-            bmsg.payload = {bridge : bridge.id}
-            msg.payload = {bridge : bridge.id}
+            var channelid = ariConnectionPool.setchan(dialed);
+            var bmsg = {};
+            bmsg.channel = channelid;
+            bmsg.client = client.id;
+            msg.type = "connected";
+            bmsg.type = "connected";
+            bmsg.payload = {bridge : bridge.id};
+            msg.payload = {bridge : bridge.id};
             if (n.connected_event) {
-                node.send([msg, bmsg])
+                node.send([msg, bmsg]);
             }
           });
           dialed.on('StasisEnd', function(event, dialed) {
             bridge.destroy(function(err) {});
-            msg.type = "ended"
-            msg.payload = event
+            msg.type = "ended";
+            msg.payload = event;
             if (n.ended_event) {
-                node.send([msg, null])
+                node.send([msg, null]);
             }
             node.status({});
           });
           channel.on('StasisEnd', function(event, channel) {
             var msg = {}
-            msg.type = "ended"
-            msg.channel = dialed.id
-            msg.client = client.id
-            msg.payload = event
+            msg.type = "ended";
+            msg.channel = dialed.id;
+            msg.client = client.id;
+            msg.payload = event;
             bridge.destroy(function(err) {});
             if (n.ended_event) {
-                node.send([null, msg])
+                node.send([null, msg]);
             }
             
             node.status({});
           });
           channel.on('ChannelDtmfReceived', function(event, channel){
             var msg = {}
-            msg.type = "DTMF"
-            msg.channel = channel.id
-            msg.client = client.id
-            msg.payload = event
-            node.send([msg, null])
+            msg.type = "DTMF";
+            msg.channel = channel.id;
+            msg.client = client.id;
+            msg.payload = event;
+            node.send([msg, null]);
           });
           dialed.on('ChannelDtmfReceived', function(event, dialled){
-            var msg = {}
-            msg.type = "DTMF"
-            msg.channel = dialled.id
-            msg.client = client.id
-            msg.payload = event
-            node.send([null, msg])
+            var msg = {};
+            msg.type = "DTMF";
+            msg.channel = dialled.id;
+            msg.client = client.id;
+            msg.payload = event;
+            node.send([null, msg]);
           });
 
           dialed.originate({endpoint: this.destination, callerId: this.callerId, app: bridgeid, appArgs: 'dialed'}, function(err, response) {
-              if (err) {throw err;}
+              if (err) {throw err;};
           });
         });
 
