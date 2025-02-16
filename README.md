@@ -1,10 +1,10 @@
-# nodered-asterisk-ari
+# node-red-contrib-asterisk-ari
 
 ## $\text{\color{green}{This module is a fork from Sam Machin }}$
 
-nodered-asterisk-ari is a module for nodered to manage Asterisk IPBX communications.
+node-red-contrib-asterisk-ari is a module for nodered to manage Asterisk IPBX communications.
 
-It allows to define Stasis application and some functions
+It allows to use Stasis application and theses functions :  
 - answer
 - continueInDialPlan
 - playback
@@ -12,11 +12,32 @@ It allows to define Stasis application and some functions
   
 It uses Rest api from Asterisk : ari
 
+### Prerequisites
+
+Have Node-RED installed and working, if you need to
+install Node-RED see [here](https://nodered.org/docs/getting-started/installation).
+
+- [Node.js](https://nodejs.org) v18.2.0+
+- [Node-RED](https://nodered.org/) v3.1.1+
 
 ## Installation
 
+Install via Node-RED Manage Palette
+
+```
+node-red-contrib-asterisk-ari
+```
+
+Install via npm
+
+```shell
+$ cd ~/.node-red
+$ npm install node-red-contrib-asterisk-ari
+# then restart node-red
+```
+
 ### Requirements
-nodered-asterik-ari requires to activate ari on asterisk server
+node-red-contrib-asterik-ari requires to activate ari on asterisk server
 
 Stasis application requires modules :
 - res_ari.so                     Asterisk RESTful Interface               
@@ -26,7 +47,6 @@ Stasis application requires modules :
 - res_ari_model.so               ARI Model validators                     
 
 answer : require 
-
 
 
 ## Usage
@@ -59,8 +79,6 @@ Please make sure to update tests as appropriate.
 
 
 
-
-
 -------------------------------------------------------------------------------------------------------------------------
 ARI commands on asterisk server :
 ```
@@ -79,15 +97,15 @@ manual installation for dev
  git clone http://...  
  cd ~/.node-red
  remove line after dependencies  
- "nodered-contrib-asterisk-ari-2025": "file:../node-red-asterisk-ari"  
+ "node-red-contrib-asterisk-ari": "file:../node-red-contrib-asterisk-ari"  
  in file ~/.nodered/package.json  
  then npm prune  
- -> remove packages for nodered-asterisk-ari  
+ -> remove packages for node-red-contrib-asterisk-ari  
  then  
- npm install ~/nodered-asterisk-ari/  
+ npm install ~/node-red-contrib-asterisk-ari/  
  -> install updated packages  
   
-run node-red  
+run node-red locally  
 node --inspect $(which node-red)  
   
 
