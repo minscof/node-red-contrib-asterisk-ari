@@ -1,8 +1,9 @@
-name: Publish to npm
+name: Publish to npm and create GitHub Release
 
 on:
-  release:
-    types: [created]  # Déclenche quand une nouvelle release est créée
+  push:
+    tags:
+      - 'v*'          # Déclenche l'action uniquement sur un tag versionné
   workflow_dispatch:  # Permet un déclenchement manuel
 
 jobs:
@@ -11,12 +12,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3  # Télécharge le repo GitHub
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: '18'
           registry-url: 'https://registry.npmjs.org/'
 
       - name: Install dependencies
@@ -26,3 +27,24 @@ jobs:
         run: npm publish --access=public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish to GitHub Packages
+        run: |
+          npm config set registry https://npm.pkg.github.com/
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            🚀 Nouvelle version publiée sur npm !
+            - 📦 Package: `@minscof/node-red-contrib-asterisk-ari`
+            - 🔗 [Voir sur npm](https://www.npmjs.com/package/@minscof/node-red-contrib-asterisk-ari)
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
