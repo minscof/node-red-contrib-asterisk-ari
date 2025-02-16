@@ -1,5 +1,5 @@
 {
-  "name": "node-red-contrib-asterisk-ari",
+  "name": "@minscof/node-red-contrib-asterisk-ari",
   "version": "2025.0.2",
   "description": "Package for Controlling Asterisk via ARI",
   "homepage": "https://github.com/minscof/node-red-contrib-asterisk-ari/",
@@ -19,7 +19,7 @@
   "author": "Minscof",
   "repository": {
     "type": "git",
-    "url": "https://github.com/minscof/node-red-contrib-asterisk-ari"
+    "url": "git+https://github.com/minscof/node-red-contrib-asterisk-ari"
   },
   "license": "MIT",
   "node-red": {
