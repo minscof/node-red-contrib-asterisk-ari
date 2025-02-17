@@ -22,8 +22,7 @@ jobs:
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org/' # Configuration pour NPMJS
-          scope: '@minscof' # Remplace par ton organisation ou utilisateur
-
+          
       - name: Install dependencies
         run: npm ci
 

@@ -1,6 +1,6 @@
 {
   "name": "@minscof/node-red-contrib-asterisk-ari",
-  "version": "2025.0.5",
+  "version": "2025.0.6",
   "description": "Package for Controlling Asterisk via ARI",
   "homepage": "https://github.com/minscof/node-red-contrib-asterisk-ari/",
   "bugs": {
@@ -28,6 +28,7 @@
   },
   "license": "MIT",
   "node-red": {
+    "version": ">=3.1.1",
     "nodes": {
       "ari_client": "ari_client.js",
       "auth": "auth.js"
