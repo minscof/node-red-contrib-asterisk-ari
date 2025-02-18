@@ -52,7 +52,47 @@ answer : require
 
 ## Usage
 
+## Example
+output example application node, event StasisStart 
+```json
+{   "event":"StasisStart",
+    "channel":"1739903441.42",
+    "client":"xx:xx:xx:xx:xx:xx",
+    "payload":{
+                "type":"StasisStart",
+                "timestamp":"2025-02-18T18:30:41.969+0000",
+                "args":[],
+                "channel":{
+                            "id":"1739903441.42",
+                            "name":"PJSIP/yyyyyy",
+                            "state":"Ring",
+                            "protocol_id":"zz@zz",
+                            "caller":{
+                                        "name":"",
+                                        "number":"+tel number caller"
+                                    },
+                            "connected":{
+                                        "name":"",
+                                        "number":""
+                                    },
+                            "accountcode":"",
+                            "dialplan":{
+                                        "context":"from-external",
+                                        "exten":"+tel number called",
+                                        "priority":2,
+                                        "app_name":"Stasis",
+                                        "app_data":"application"
+                                        },
+                            "creationtime":"2025-02-18T18:30:41.968+0000",
+                            "language":"fr"
+                            },
+                "asterisk_id":"xx:xx:xx:xx:xx:xx",
+                "application":"application"
+                },
+    "_msgid":"1fd285aa51c2a5a0"
+}
 
+```
 
 ## Limitation
 Can not yet launch call, only receive call

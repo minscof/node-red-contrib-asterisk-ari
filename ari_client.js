@@ -15,84 +15,90 @@ module.exports = function(RED) {
                 
                     function connectToAri() {
                         console.log(`Try to connect node ${node.name} to ARI...`);
-                
-                        ari.connect(url, username, password, function (err, client) {
-                            if (err) {
-                                console.error(`Connection failed for node ${node.name} to ARI : err= ${err.message}`);
-                                node.error(err);
-                                console.error(`Connection failed user ${username}  password ${password} error ${err}`);
-                                node.status({fill:"red",shape:"dot",text:"disconnected"});
-                                node.connected = false;
-                            } else {
-                                console.log(`Connection success for node node ${node.name} to ARI.`);
-                                node.connected = true;
-                    
-                                // Stoppe les tentatives de reconnexion
-                                console.log(`Cancel retry connect node ${node.name} to ARI ${retryIntervalId}!`);
-                                //clearInterval(retryInterval);
-                                clearInterval(retryIntervalId);
-                    
-                                // Appelle la fonction principale
-                                
-                                function _checkConnection(client) {
-                                    console.debug(`Start checkConnection for node ${node.name} every 4000 ms`); 
-                                    client.asterisk.ping((err, info) => {
-                                        if (err) {
-                                            console.error(`Ping failed for connection node ${node.name}`);
-                                            node.status({fill:"red",shape:"dot",text:"disconnected"});
-                                            node.connected = false;
-                                        } else {
-                                            console.debug(`Pong for app ${app} and node id ${node.id} name ${node.name} `);
-                                            node.status({fill:"green",shape:"dot",text:"connected"});
-                                            node.connected = true;
-                                            //console.debug("dump5 client %o", client);
-                                            console.debug(`Cancel _checkConnection to ARI ${retryIntervalId} for ${node.name}!`);
-                                            clearInterval(retryIntervalId);
-                                        };
-                                    });
-                                };
-
-                                client.on('WebSocketMaxRetries', (err) => {
-                                    console.log(`WebSocketMaxRetries node ${node.name} err ${err}..`);
-                                    //console.debug("dump4 client %o", client);
-                                    node.connected = false;
+                        try {
+                            ari.connect(url, username, password, function (err, client) {
+                                if (err) {
+                                    console.error(`Connection failed for node ${node.name} to ARI : err= ${err.message}`);
                                     node.error(err);
+                                    console.error(`Connection failed user ${username}  password ${password} error ${err}`);
                                     node.status({fill:"red",shape:"dot",text:"disconnected"});
-                                    /*
-                                    retryIntervalId = setInterval(function () {
-                                        _checkConnection(client);
-                                    }, 4000);
-                                    */
-                                    retryIntervalId = setInterval(connectToAri, 4000);
-                                    console.debug(`setInterval Bis retryIntervalId = ${retryIntervalId}`);
-                                });
-
-                                //clientLoaded(client);
-
-                                client.asterisk.getInfo((err, info) => {
-                                    if (err || !info.system || !info.system.entity_id) {
-                                        console.error(`Impossible d'obtenir l'ID de la connexion node ${node.name}`);
-                                        reject(new Error("Whoops2! what about a retry ?"));
-                                        console.debug(`after reject promise2  retry ?!`);
-                                        return;
-                                    }
-                            
-                                    var id = info.system.entity_id; // Utilisation de l'entity_id
-                                    
-                                    connections[id] = client;
-                                    //console.debug("dump3 client %o", client);
-                                    //console.debug(`dump client  ${client}`);
-                                    console.debug(`Cancel _checkConnection to ARI ${retryIntervalId} for ${node.name}!`);
+                                    node.connected = false;
+                                } else {
+                                    console.log(`Connection success for node node ${node.name} to ARI.`);
+                                    node.connected = true;
+                        
+                                    // Stoppe les tentatives de reconnexion
+                                    console.log(`Cancel retry connect node ${node.name} to ARI ${retryIntervalId}!`);
+                                    //clearInterval(retryInterval);
                                     clearInterval(retryIntervalId);
+                        
+                                    // Appelle la fonction principale
+                                    
+                                    function _checkConnection(client) {
+                                        console.debug(`Start checkConnection for node ${node.name} every 4000 ms`); 
+                                        client.asterisk.ping((err, info) => {
+                                            if (err) {
+                                                console.error(`Ping failed for connection node ${node.name}`);
+                                                node.status({fill:"red",shape:"dot",text:"disconnected"});
+                                                node.connected = false;
+                                            } else {
+                                                console.debug(`Pong for app ${app} and node id ${node.id} name ${node.name} `);
+                                                node.status({fill:"green",shape:"dot",text:"connected"});
+                                                node.connected = true;
+                                                //console.debug("dump5 client %o", client);
+                                                console.debug(`Cancel _checkConnection to ARI ${retryIntervalId} for ${node.name}!`);
+                                                clearInterval(retryIntervalId);
+                                            };
+                                        });
+                                    };
 
-                                    console.debug(`Connection success with ID = ${id} for app = ${app} for node ${node.name}`);
-                                    clientLoaded(client, app, topics, node, id);
-                                    resolve("done");
-                                    console.debug(`Promise resolved for ${app} node ${node.name} - la promesse a été tenue et cela semble vrai ...`);
-                                });
+                                    client.on('WebSocketMaxRetries', (err) => {
+                                        console.log(`WebSocketMaxRetries node ${node.name} err ${err}..`);
+                                        //console.debug("dump4 client %o", client);
+                                        node.connected = false;
+                                        node.error(err);
+                                        node.status({fill:"red",shape:"dot",text:"disconnected"});
+                                        /*
+                                        retryIntervalId = setInterval(function () {
+                                            _checkConnection(client);
+                                        }, 4000);
+                                        */
+                                        retryIntervalId = setInterval(connectToAri, 4000);
+                                        console.debug(`setInterval Bis retryIntervalId = ${retryIntervalId}`);
+                                    });
+
+                                    //clientLoaded(client);
+
+                                    client.asterisk.getInfo((err, info) => {
+                                        if (err || !info.system || !info.system.entity_id) {
+                                            console.error(`Impossible d'obtenir l'ID de la connexion node ${node.name}`);
+                                            reject(new Error("Whoops2! what about a retry ?"));
+                                            console.debug(`after reject promise2  retry ?!`);
+                                            return;
+                                        }
                                 
-                            }
-                        });
+                                        var id = info.system.entity_id; // Utilisation de l'entity_id
+                                        
+                                        connections[id] = client;
+                                        //console.debug("dump3 client %o", client);
+                                        //console.debug(`dump client  ${client}`);
+                                        console.debug(`Cancel _checkConnection to ARI ${retryIntervalId} for ${node.name}!`);
+                                        clearInterval(retryIntervalId);
+
+                                        console.debug(`Connection success with ID = ${id} for app = ${app} for node ${node.name}`);
+                                        clientLoaded(client, app, topics, node, id);
+                                        resolve("done");
+                                        console.debug(`Promise resolved for ${app} node ${node.name} - la promesse a été tenue et cela semble vrai ...`);
+                                    });
+                                    
+                                }
+                            });
+                        } catch (error) {
+                            node.error(error);
+                            console.error(`Connection failed user ${username}  password ${password} error ${error}`);
+                            node.status({fill:"red",shape:"dot",text:"error - disconnected"});
+                            node.connected = false;
+                        }
                     }
                       
                     //Start trying to connect to ari, then retry after delay in case of failure
@@ -383,8 +389,13 @@ module.exports = function(RED) {
           var channel = ariConnectionPool.getchan(msg.channel);
           var playback = client.Playback();
           console.debug(`debug playback ${this.media2}`);
-          channel.play({media: this.media2},
-                            playback, function(err, newPlayback) {if (err) {throw err;}});
+          channel.play({media: this.media2}, playback, function(err, newPlayback) {
+            if (err) {
+                console.debug(`error playback = ${err}`);
+                node.error(err);
+                node.status({});
+            }
+          });
           playback.on('PlaybackFinished', function(event, completedPlayback) {
             msg.payload = event;
             node.send(msg);
@@ -408,7 +419,11 @@ module.exports = function(RED) {
           node.status({fill:"blue",shape:"dot"});
             var channel = ariConnectionPool.getchan(msg.channel);
             channel.hangup(function(err) {
-                if (err) {node.error(err);};
+                if (err) {
+                    console.debug(`error hangup = ${err}`);
+                    node.error(err);
+                    node.status({});
+                };
                 node.status({});
             });            
         });
@@ -493,7 +508,12 @@ module.exports = function(RED) {
           client.start(bridgeid);
           dialed.on('StasisStart', function(event, dialed) {
             dialed.continue(function(err) {if (err) {throw err;}});
-            bridge.addChannel({channel: [channel.id, dialed.id]}, function(err) {if (err) {throw err;}});
+            bridge.addChannel({channel: [channel.id, dialed.id]}, function(err) {
+                if (err) {
+                    node.error(err);
+                    node.status({});
+                };
+            });
             var channelid = ariConnectionPool.setchan(dialed);
             var bmsg = {};
             bmsg.channel = channelid;
