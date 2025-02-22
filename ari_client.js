@@ -67,8 +67,6 @@ module.exports = function(RED) {
                                         console.debug(`setInterval Bis retryIntervalId = ${retryIntervalId}`);
                                     });
 
-                                    //clientLoaded(client);
-
                                     client.asterisk.getInfo((err, info) => {
                                         if (err || !info.system || !info.system.entity_id) {
                                             console.error(`Impossible d'obtenir l'ID de la connexion node ${node.name}`);
@@ -87,9 +85,15 @@ module.exports = function(RED) {
 
                                         console.debug(`Connection success with ID = ${id} for app = ${app} for node ${node.name}`);
                                         clientLoaded(client, app, topics, node, id);
-                                        resolve("done");
+                                        resolve({
+                                            id: id,
+                                            client: client
+                                        });
                                         console.debug(`Promise resolved for ${app} node ${node.name} - la promesse a été tenue et cela semble vrai ...`);
                                     });
+
+                                    //clientLoaded(client);
+
                                     
                                 }
                             });
@@ -193,7 +197,7 @@ module.exports = function(RED) {
                 console.debug(`activate event ${event} for node ${node.name}`);
                 client.on(event, callback);
             } else {
-                console.debug(`function ${callbackName} not yet implemented for node ${node.name}...`)
+                console.debug(`❌ function ${callbackName} not yet implemented for node ${node.name}...`);
             }
         });
 
@@ -267,14 +271,6 @@ module.exports = function(RED) {
         //_stasisStart(event, channel) {
             var dialed = event.args[0] === 'dialed';
             if (!dialed){
-                /*
-                var channelid = ariConnectionPool.setchan(channel);
-                var msg = {};
-                msg.channel = channelid;
-                msg.client = id;
-                msg.payload = event;
-                node.send([msg, null]);
-                */
                 console.log(`StasisStart before node send ${node.name} for ${channel.id} and client ${id}`);
                 node.send([{ event: 'StasisStart', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
 
@@ -285,61 +281,128 @@ module.exports = function(RED) {
 
         function _stasisEnd(event, channel) {
             console.log(`StasisEnd event for ${channel.id}`);
-            //node.send({ payload: { event: 'StasisEnd', channel: channel, details: event } });
             node.send([{ event: 'StasisEnd', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
+        }
+        
+        function _deviceStateChanged(event, channel) {
+            node.send([{ event: 'DeviceStateChanged', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
+        }
+
+        function _endpointStateChange(event, channel) {
+            node.send([{ event: 'EndpointStateChange', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
+        }
+
+        function _channelConnectedLine(event, channel) {
+            node.send([{ event: 'ChannelConnectedLine', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
+        }
+        
+        function _channelCreated(event, channel) {
+            node.send([{ event: 'ChannelCreated', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
+        }
+        
+        function _channelEnteredBridge(event, channel) {
+            node.send([{ event: 'ChannelEnteredBridge', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
+        }
+
+        function _channelLeftBridge(event, channel) {
+            node.send([{ event: 'ChannelLeftBridge', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
+        }
+
+        function _channelStateChange(event, channel) {
+            if (event.channel.state = 'Ringing') {
+                console.log("📞 ringing...");
+            }
+            node.send([{ event: 'ChannelStateChange', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
         }
 
         function _channelDtmfReceived(event, channel) {
-            node.send([null,{ payload: { event: 'ChannelDtmfReceived', channel: channel, digit: event.digit, details: event } }]);
+            node.send([{ event: 'ChannelDtmfReceived', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
         }
+
+        function _channelDialplan(event, channel) {
+            node.send([{ event: 'ChannelDialplan', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
+        }
+
+        function _channelCallerId(event, channel) {
+            node.send([{ event: 'ChannelCallerId', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
+        }
+
+        function _channelUserevent(event, channel) {
+            node.send([{ event: 'ChannelUserevent', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
+        }    
 
         function _channelHangupRequest(event, channel) {
             //node.send({ payload: { event: 'ChannelHangupRequest', channel: channel, details: event } });
+            console.log(`📞 Appel raccroché - Raison : ${event.cause_txt} (Code: ${event.cause})`);
+
+            if (event.cause === 21) {
+                console.log("❌ Le correspondant a refusé l'appel !");
+            }
             node.send([{ event: 'ChannelHangupRequest', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
         }
 
         function _channelDestroyed(event, channel) {
-            node.send({ payload: { event: 'ChannelDestroyed', channel: channel, details: event } });
+            node.send([{ event: 'ChannelDestroyed', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
+        }
+
+        function _channelToneDetected(event, channel) {
+            node.send([{ event: 'ChannelToneDetected', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
+        }
+
+        function _channelTalkingStarted(event, channel) {
+            node.send([{ event: 'ChannelTalkingStarted', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
+        }
+
+        function _channelTalkingFinished(event, channel) {
+            node.send([{ event: 'ChannelTalkingFinished', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
+        }
+
+        function _channelHold(event, channel) {
+            node.send([{ event: 'ChannelHold', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
+        }
+
+        function _channelUnhold(event, channel) {
+            node.send([{ event: 'ChannelUnhold', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
         }
 
         function _channelVarset(event, channel) {
-            node.send({ payload: { event: 'ChannelVarset', channel: channel, details: event } });
+            node.send([{ event: 'ChannelVarset', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
         }
 
         function _bridgeCreated(event) {
-            node.send({ payload: { event: 'BridgeCreated', details: event } });
+            node.send([{ event: 'BridgeCreated', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
         }
 
         function _bridgeDestroyed(event) {
-            node.send({ payload: { event: 'BridgeDestroyed', details: event } });
+            node.send([{ event: 'BridgeDestroyed', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
         }
 
         function _bridgeEnter(event, channel) {
-            node.send({ payload: { event: 'BridgeEnter', channel: channel, details: event } });
+            node.send([{ event: 'BridgeEnter', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
         }
 
         function _bridgeLeave(event, channel) {
-            node.send({ payload: { event: 'BridgeLeave', channel: channel, details: event } });
+            node.send([{ event: 'BridgeLeave', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
         }
 
         function _playbackStarted(event) {
-            node.send({ payload: { event: 'PlaybackStarted', details: event } });
+            node.send([{ event: 'PlaybackStarted', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
         }
 
         function _playbackFinished(event) {
-            node.send({ payload: { event: 'PlaybackFinished', details: event } });
+            node.send([{ event: 'PlaybackFinished', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
         }
 
         function _recordingStarted(event) {
-            node.send({ payload: { event: 'RecordingStarted', details: event } });
+            node.send([{ event: 'RecordingStarted', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
         }
 
         function _recordingFinished(event) {
-            node.send({ payload: { event: 'RecordingFinished', details: event } });
+            node.send([{ event: 'RecordingFinished', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
         }
 
         function _recordingFailed(event) {
-            node.send({ payload: { event: 'RecordingFailed', details: event } });
+            node.send([{ event: 'RecordingFailed', channel: ariConnectionPool.setchan(channel), client: id, payload: event }, null]);
         }
         /*
         _close_app() {
@@ -373,7 +436,7 @@ module.exports = function(RED) {
         setcon_promise// se lance quand la promesse est acquittée, peu importe si celle-ci est tenue ou rompue
         .finally(() => console.debug(`__________nettoyage de la promesse`))
         // donc l'indicateur de chargement est toujours arrêté avant de continuer
-        .then(result => console.debug(`__________promesse réussie`), err => console.debug(`__________promesse rompue ${err}`));
+        .then(result => console.debug(`__________promesse réussie id client = ${result.id}`), err => console.debug(`__________promesse rompue ${err}`));
     }
     RED.nodes.registerType("ari_client", ari_application_node);
     
@@ -389,11 +452,18 @@ module.exports = function(RED) {
           var channel = ariConnectionPool.getchan(msg.channel);
           var playback = client.Playback();
           console.debug(`debug playback ${this.media2}`);
+          if (!this.media2) {
+            console.debug(`error playback = media not defined`);
+                node.error(`media not defined`);
+                node.status({});
+                return;
+          }
           channel.play({media: this.media2}, playback, function(err, newPlayback) {
             if (err) {
                 console.debug(`error playback = ${err}`);
                 node.error(err);
                 node.status({});
+                return;
             }
           });
           playback.on('PlaybackFinished', function(event, completedPlayback) {
@@ -578,4 +648,91 @@ module.exports = function(RED) {
     }
     RED.nodes.registerType("ari_bridgedial",ari_bridgedial);
 
+    function ari_originate(n){
+        RED.nodes.createNode(this,n);
+        var node = this;
+        this.connected = false;       
+        this.server = RED.nodes.getNode(n.server);
+        console.debug(`ari_application_originate_node url = ${this.server.credentials.url} application = ${n.app_name}`);
+        console.debug(`ari_application_originate_node topics =  ${n.topics}`);
+        this.destination = n.destination;
+        this.callerId = n.callerId;
+        node.on('input', function (msg) {
+          node.status({fill:"blue",shape:"dot"});
+
+          let setcon_promise_originate = ariConnectionPool.setconn(this.server.credentials.url, this.server.credentials.username, this.server.credentials.password, n.app_name, n.topics,this);
+          console.debug(`end ari_originate_node ${n.name} app ${n.app_name} result ${setcon_promise_originate}`);
+          setcon_promise_originate// se lance quand la promesse est acquittée, peu importe si celle-ci est tenue ou rompue
+          .finally(() => console.debug(`__________nettoyage de la promesse originate`))
+          // donc l'indicateur de chargement est toujours arrêté avant de continuer
+          .then(result => {
+            console.debug(`__________promesse originate réussie id client ${result.id}`);
+
+            //var client = ariConnectionPool.getconn('80:af:ca:63:b7:7c');
+            var client = result.client;
+            console.debug(`originate call destination node  = ${n.destination} `)
+            let destination = msg.payload.destination ?? n.destination;
+            console.debug(`originate call destination = ${destination} `);
+            let callee = destination.includes('/') ? destination.split('/')[1].split('@')[0] : null;
+            console.debug(`originate call destination = ${destination} callee = ${callee}`);
+            if (!destination) {
+                node.error("destination undefined");
+                node.status({});
+                return;
+            };
+      
+
+            console.log("📞 Trying to call...");
+            client.channels.originate({
+                endpoint: destination,
+                callerId: n.callerId, // Numéro affiché
+                app: n.app_name
+            })
+            .then(channel => {
+                console.log(`📞 Appel en cours vers ${callee}...`);
+/*
+                // Écoute des événements liés à ce canal
+                client.on('StasisStart', event => {
+                    console.log(`✅ Appel connecté à ${callee} StasisStart appli ${n.app_name} debug event ${event}`);
+                    msg.payload = event;
+                    node.send([null, msg]);
+                });
+
+                client.on('ChannelHangupRequest', event => {
+                    console.log(`❌ Appel terminé ChannelHangupRequest appli ${n.app_name} debug event ${event}`);
+                    msg.payload = event;
+                    node.send([null, msg]);
+                });
+
+                client.on('ChannelDestroyed', event => {
+                    console.log(`❌ Appel terminé ChannelDestroyed appli ${n.app_name} debug event ${event}`);
+                    msg.payload = event;
+                    node.send([null, msg]);
+                });
+
+                client.on('StasisEnd', event => {
+                    console.log(`❌ Appel terminé StasisEnd appli ${n.app_name} debug event ${event}`);
+                    msg.payload = event;
+                    node.send([null, msg]);
+                });
+*/
+                return channel;
+            })
+            .catch(err => {
+                console.error(`❌ Erreur lors de l'initialisation de l'appel :`, err.message || err);
+            });
+          
+        
+          }, err => console.debug(`__________promesse originate rompue ${err}`));
+
+        });
+
+        this.on("close", function() {
+              // Called when the node is shutdown - eg on redeploy.
+              // Allows ports to be closed, connections dropped etc.
+              // eg: node.client.disconnect();
+        });      
+        
+    }
+    RED.nodes.registerType("ari_originate",ari_originate);
 }

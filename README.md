@@ -26,7 +26,7 @@ install Node-RED see [here](https://nodered.org/docs/getting-started/installatio
 Install via Node-RED Manage Palette
 
 ```
-node-red-contrib-asterisk-ari
+@minscof/node-red-contrib-asterisk-ari
 ```
 
 Install via npm

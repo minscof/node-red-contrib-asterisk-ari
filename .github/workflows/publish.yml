@@ -1,0 +1,54 @@
+name: Publish Package to NPM, Github and Node Red
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:  # Permet un déclenchement manuel
+
+permissions:
+  contents: read
+  packages: write # Indispensable pour publier sur GitHub Packages
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org/' # Configuration pour NPMJS
+          
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Authenticate with NPMJS
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Publish package to NPMJS
+        run: npm publish --access=public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      
+      - name: Authenticate with GitHub Packages
+        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish package to GitHub Packages
+        run: npm publish --registry=https://npm.pkg.github.com/
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Node-Red flow-library
+        if: contains(steps.package-version.outputs.current-version, 'dev') != true
+        uses: Zehir/update-package-node-red-flow-library-action@v1.0.5
+        continue-on-error: true
+        with:
+          package-name: '@minscof/node-red-contrib-asterisk-ari'

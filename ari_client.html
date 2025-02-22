@@ -4,7 +4,7 @@
         color: '#989898',
         icon: 'font-awesome/fa-asterisk',
         defaults: {             
-            name: {value:""},
+            name: {value:"Application"},
             server: {value:"", type:"asterisk_ari"},
             app_name: {value:"TestApp"},
             topics: {value:""}
@@ -217,7 +217,7 @@
         color: '#FF9966',
         icon: 'font-awesome/fa-asterisk',
         defaults: {
-            name: {value:""},
+            name: {value:"Playback"},
             media2: {value:""},
             media2Type:{value:"msg"}
         },
@@ -279,7 +279,7 @@
         color: '#FF6633',
         icon: 'font-awesome/fa-asterisk',
         defaults: {
-            name: {value:""}
+            name: {value:"Hangup"}
         },
         inputs:1,
         label: function() {
@@ -310,7 +310,7 @@
         color: '#66ff66',
         icon: 'font-awesome/fa-asterisk',
         defaults: {             
-            name: {value:""}
+            name: {value:"Answer"}
         },
         inputs:1,
         outputs: 1,
@@ -338,7 +338,7 @@
         color: '#66ff66',
         icon: 'font-awesome/fa-asterisk',
         defaults: {             
-            name: {value:""}
+            name: {value:"Continue in dialplan"}
         },
         inputs:1,
         outputs: 1,
@@ -364,7 +364,7 @@
         color: '#339933',
         icon: 'font-awesome/fa-asterisk',
         defaults: {             
-            name: {value:""},
+            name: {value:"Bridge Dial"},
             destination: {value:""},
             callerId: {},
             connected_event : {value: false},
@@ -394,17 +394,106 @@
         <label for="node-input-callerId"><i class="fa fa-tag"></i>Caller ID</label>
         <input type="text" id="node-input-callerId" placeholder="2000">
     </div>
-    <h2> Events to Emit </h2>
+ </script>
+
+ <!-- ari_bridgedial section  end                                                -->
+
+ <script type="text/javascript">
+    RED.nodes.registerType('ari_originate',{
+        category: 'asterisk',      
+        color: '#339933',
+        icon: 'font-awesome/fa-asterisk',
+        defaults: {             
+            name: {value:"Originate"},
+            server: {value:"", type:"asterisk_ari"},
+            app_name: {value:"TestApp"},
+            topics: {value:""},
+            destination: {value:""},
+            callerId: {},
+            connected_event : {value: false},
+            ended_event : {value: false},
+            dtmf_event : {value: false}
+        },
+        inputs:1,
+        outputs: 2,
+        outputLabels: ["event", "?"], 
+        label: function() {     
+            return this.name||"Originate";
+        },
+        palletteLabel: "Originate"
+    });
+</script>
+
+<script type="text/html" data-template-name="ari_originate">
     <div class="form-row">
-        <label for="node-input-connected_event"><i class="fa fa-tag"></i>Connected</label>
-        <input type="checkbox" id="node-input-connected_event" >
+        <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
     </div>
     <div class="form-row">
-        <label for="node-input-ended_event"><i class="fa fa-tag"></i>Ended</label>
-        <input type="checkbox" id="node-input-ended_event" >
+        <label for="node-config-input-server"><i class="fa fa-tag"></i>Asterisk Server</label>
+        <input type="text" id="node-input-server" >
     </div>
     <div class="form-row">
-        <label for="node-input-destination"><i class="fa fa-tag"></i>DTMF</label>
-        <input type="checkbox" id="node-input-ended_event" >
+        <label for="node-input-app_name"><i class="fa fa-tag"></i>Application Name</label>
+        <input type="text" id="node-input-app_name" placeholder="Test-App">
+    </div>
+    <div class="form-row">
+        <label for="node-input-topics"><i class="fa fa-tag"></i>Topics</label>
+        <!--input type="text" id="node-input-topics" placeholder="StasisStart"-->
+        
+        <select id="node-input-topics" name="node-input-topics" size="5" multiple>
+            <option selected="selected">StasisStart</option>
+            <option>StasisEnd</option>
+            <option>ContactStatusChange</option>
+            <option>DeviceStateChanged</option>
+            <option>EndpointStateChange</option>
+            <option>Dial</option>
+            <option>ChannelConnectedLine</option>
+            
+            <!--option>All</option-->
+            <option>ChannelHangupRequest</option>
+            <option>TextMessageReceived</option>
+            <option>ApplicationMoveFailed</option>
+            <option>ApplicationReplaced</option>
+            <option>BridgeCreated</option>
+            <option>BridgeDestroyed</option>
+            <option>BridgeMerged</option>
+            <option>BridgeBlindTransfer</option>
+            <option>BridgeAttendedTransfer</option>
+            <option>BridgeVideoSourceChanged</option>
+            <option>ChannelCreated</option>
+            <option>ChannelDestroyed</option>
+            <option>ChannelEnteredBridge</option>
+            <option>ChannelLeftBridge</option>
+            <option>ChannelStateChange</option>
+            <option>ChannelDtmfReceived</option>
+            <option>ChannelDialplan</option>
+            <option>ChannelCallerId</option>
+            <option>ChannelUserevent</option>
+            <option>ChannelVarset</option>
+            <option>ChannelToneDetected</option>
+            <option>ChannelTalkingStarted</option>
+            <option>ChannelTalkingFinished</option>
+            <option>ChannelHold</option>
+            <option>ChannelUnhold</option>
+            <option>Chocolate Shake</option>
+            <option>PeerStatusChange</option>
+            <option>PlaybackStarted</option>
+            <option>PlaybackContinuing</option>
+            <option>PlaybackFinished</option>
+            <option>RecordingStarted</option>
+            <option>RecordingFinished</option>
+            <option>RecordingFailed</option>
+          </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-destination"><i class="fa fa-tag"></i>Destination</label>
+        <input type="text" id="node-input-destination" placeholder="PJSIP/number[@trunk name]">
+    </div>
+    <div class="form-row">
+        <label for="node-input-callerId"><i class="fa fa-tag"></i>Caller ID</label>
+        <input type="text" id="node-input-callerId" placeholder="2000">
     </div>
  </script>
+
+ <!-- ari_originate section  end                                                -->
