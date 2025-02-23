@@ -10,6 +10,7 @@ It allows to use Stasis application and theses functions :
 - continueInDialPlan
 - playback
 - hangup
+- originate
   
 It uses Rest api from Asterisk : ari
 

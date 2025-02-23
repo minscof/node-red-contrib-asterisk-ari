@@ -1,0 +1,614 @@
+<script type="text/javascript">
+    RED.nodes.registerType('ari_incoming', {
+        category: 'asterisk',
+        color: '#989898',
+        icon: 'font-awesome/fa-asterisk',
+        defaults: {
+            name: { value: "Application" },
+            server: { value: "", type: "asterisk_ari" },
+            app_name: { value: "TestApp" },
+            topics: { value: "" }
+        },
+        outputs: 2,
+        outputLabels: ["Event", "Dtmf"],
+        label: function () {
+            return this.name || "Application";
+        },
+        palletteLabel: "Application",
+
+        oneditprepare: function () {
+            // Préparer la sélection multiple à l'ouverture de l'éditeur
+            const selectedValues = this.topics || [];
+            $('#node-input-topics').val(selectedValues);
+        },
+        oneditsave: function () {
+            // Sauvegarder les valeurs sélectionnées
+            this.topics = $('#node-input-topics').val() || [];
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="ari_incoming">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-server"><i class="fa fa-tag"></i>Asterisk Server</label>
+        <input type="text" id="node-input-server" >
+    </div>
+    <div class="form-row">
+        <label for="node-input-app_name"><i class="fa fa-tag"></i>Application Name</label>
+        <input type="text" id="node-input-app_name" placeholder="Test-App">
+    </div>
+    <div class="form-row">
+        <label for="node-input-topics"><i class="fa fa-tag"></i>Topics</label>
+        <!--input type="text" id="node-input-topics" placeholder="StasisStart"-->
+        
+        <select id="node-input-topics" name="node-input-topics" size="5" multiple>
+            <option selected="selected">StasisStart</option>
+            <option>StasisEnd</option>
+            <option>ContactStatusChange</option>
+            <option>DeviceStateChanged</option>
+            <option>EndpointStateChange</option>
+            <option>Dial</option>
+            <option>ChannelConnectedLine</option>
+            
+            <!--option>All</option-->
+            <option>ChannelHangupRequest</option>
+            <option>TextMessageReceived</option>
+            <option>ApplicationMoveFailed</option>
+            <option>ApplicationReplaced</option>
+            <option>BridgeCreated</option>
+            <option>BridgeDestroyed</option>
+            <option>BridgeMerged</option>
+            <option>BridgeBlindTransfer</option>
+            <option>BridgeAttendedTransfer</option>
+            <option>BridgeVideoSourceChanged</option>
+            <option>ChannelCreated</option>
+            <option>ChannelDestroyed</option>
+            <option>ChannelEnteredBridge</option>
+            <option>ChannelLeftBridge</option>
+            <option>ChannelStateChange</option>
+            <option>ChannelDtmfReceived</option>
+            <option>ChannelDialplan</option>
+            <option>ChannelCallerId</option>
+            <option>ChannelUserevent</option>
+            <option>ChannelVarset</option>
+            <option>ChannelToneDetected</option>
+            <option>ChannelTalkingStarted</option>
+            <option>ChannelTalkingFinished</option>
+            <option>ChannelHold</option>
+            <option>ChannelUnhold</option>
+            <option>PeerStatusChange</option>
+            <option>PlaybackStarted</option>
+            <option>PlaybackContinuing</option>
+            <option>PlaybackFinished</option>
+            <option>RecordingStarted</option>
+            <option>RecordingFinished</option>
+            <option>RecordingFailed</option>
+          </select>
+    </div>
+</script>
+
+<!-- Next, some simple help text is provided for the node.                   -->
+<script type="text/html" data-help-name="ari_incoming">
+    <!-- data-help-name identifies the node type this help is for             -->
+<!-- This content appears in the Info sidebar when a node is selected     -->
+<!-- The first <p> is used as the pop-up tool tip when hovering over a    -->
+<!-- node in the palette.                                                 -->
+<p>Connect to asterisk and receive all the events to the application</p>
+
+<p>event values
+<ul>
+    <li>StasisStart,</li>
+    <li>ChannelHangupRequest,</li>
+    <li>StasisEnd,</li>
+    <li>others...</li>
+</ul>
+</p>
+
+<h3>Inputs</h3>
+<dl class="message-properties">
+    <dt>payload
+        <span class="property-type">object</span>
+    </dt>
+    <dd>
+        Each incoming message's <code>payload</code> will be added to an internal buffer. Once the buffer is full or a
+        certain interval has passed, the messages are sent to the configured backend.
+    </dd>
+</dl>
+
+
+<h3>Outputs</h3>
+<dl class="message-properties">
+    <dt>Event</dt>
+    <dd>
+        <p>Output an object called <b>msg</b> containing
+            <b>msg.payload</b>. msg.payload is composed of
+        <ul>
+            <li><b>event</b> name (string), </li>
+            <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
+            <li><b>channelId</b> identifier of channel (string)  - optional</li>
+            <li><b>payload</b> event (object)</li>
+            <li><b>_msgid</b> (string).</li>
+        </ul>
+        </p>
+    </dd>
+    <dt>Dtmf</dt>
+    <dd>
+        <p>Output an object called <b>msg</b> containing
+            <b>msg.payload</b>. msg.payload is composed of
+        <ul>
+            <li><b>event</b> (string), </li>
+        </ul>
+        </p>
+
+    </dd>
+    <dt>Debug</dt>
+    <dd>
+        <p>Output an object called <b>msg</b> containing
+            <b>msg.payload</b>. msg.payload is composed of
+        <ul>
+            <li><b>event</b> (string), </li>
+        </ul>
+        </p>
+        This node does not produce any output. It sends data directly to a backend API.
+    </dd>
+</dl>
+
+<h3>Details</h3>
+<p>
+    The "Status Storer" node works as follows:
+<ul>
+    <li>Each incoming message's <code>payload</code> is stored in a buffer.</li>
+    <li>Once the buffer reaches a certain size (specified by the <code>bufferSize</code> parameter), or after a defined
+        interval (specified by the <code>flushInterval</code> parameter), the contents of the buffer are sent in a
+        single POST request to the backend API.</li>
+    <li>The backend URL, access token, buffer size, and flush interval can be configured in the node settings, or
+        overridden by values in the incoming message's request body.</li>
+</ul>
+</p>
+
+<h3>Node Configuration</h3>
+<dl class="message-properties">
+    <dt>application name
+        <span class="property-type">string</span>
+    </dt>
+    <dd>
+        The name of the stasis application to register. Put this name in the dialplan. ex exten => _+.,1,Stasis(TestApp)
+        Default: <code>TestApp</code>.
+    </dd>
+
+    <dt>Asterisk server
+        <span class="property-type">object</span>
+    </dt>
+    <dd>
+        The id of the Asterisk server to use.
+    </dd>
+
+</dl>
+
+<h3>Examples of Use:</h3>
+<ul>
+    <li><strong>Example 1:</strong>
+        <ul>
+            <li>Configuration: <code>bufferSize=2</code>, <code>flushInterval=5000</code>.</li>
+            <li>Behavior: After receiving two messages, they will be sent as a bulk request to the backend.</li>
+        </ul>
+    </li>
+    <li><strong>Example 2:</strong>
+        <ul>
+            <li>Configuration: <code>bufferSize=10</code>, <code>flushInterval=30000</code>.</li>
+            <li>Behavior: Messages are sent in batches of 10, or after 30 seconds if fewer than 10 messages have been
+                received.</li>
+        </ul>
+    </li>
+</ul>
+
+<p>
+    This node receives all the events for the stasis application configured in the dialplan.
+</p>
+
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('ari_playback', {
+        category: 'asterisk',
+        color: '#FF9966',
+        icon: 'font-awesome/fa-asterisk',
+        defaults: {
+            name: { value: "Playback" },
+            media2: { value: "" },
+            media2Type: { value: "msg" }
+        },
+        inputs: 1,
+        outputs: 1,
+        label: function () {
+            return this.name || "Playback";
+        },
+        palletteLabel: "Playback",
+
+        oneditprepare: function () {
+            $('#node-input-media2').typedInput({
+                default: '',
+                typeField: $("#node-input-media2Type"),
+                //type:"msg",
+                types: ["msg", "flow", "global", "str"],
+            });
+        },
+        oneditsave: function () {
+            //this.exampleText = this.editor.getValue();
+            //this.editor.destroy();
+            media2Type = $('#node-input-media2Type').val()
+            delete this.editor;
+        },
+        oneditcancel: function () {
+            this.editor.destroy();
+            delete this.editor;
+        },
+    });
+</script>
+
+<script type="text/html" data-template-name="ari_playback">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-media2"><i class="fa fa-tag"></i>Or media in var</label>
+        <input type="text" id="node-input-media2" style="width:70%" placeholder="sound:weasels-eaten-phonesys">
+        <input type="hidden" id="node-input-media2Type">
+    </div>
+</script>
+
+<!-- Next, some simple help text is provided for the node.                   -->
+<script type="text/html" data-help-name="ari_playback">
+    <!-- data-help-name identifies the node type this help is for             -->
+<!-- This content appears in the Info sidebar when a node is selected     -->
+<!-- The first <p> is used as the pop-up tool tip when hovering over a    -->
+<!-- node in the palette.                                                 -->
+<p>Input and output node. Just sends a sound message when it starts up.
+</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('ari_hangup', {
+        category: 'asterisk',
+        color: '#FF6633',
+        icon: 'font-awesome/fa-asterisk',
+        defaults: {
+            name: { value: "Hangup" }
+        },
+        inputs: 1,
+        label: function () {
+            return this.name || "Hangup";
+        },
+        palletteLabel: "Hangup"
+    });
+</script>
+
+<script type="text/html" data-template-name="ari_hangup">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<!-- Next, some simple help text is provided for the node.                   -->
+<script type="text/html" data-help-name="ari_hangup">
+    <p> Hangup The Channel</p>
+ </script>
+
+<!-- ari_answer section  start                                                -->
+<script type="text/javascript">
+    RED.nodes.registerType('ari_answer', {
+        category: 'asterisk',
+        color: '#66ff66',
+        icon: 'font-awesome/fa-asterisk',
+        defaults: {
+            name: { value: "Answer" }
+        },
+        inputs: 1,
+        outputs: 1,
+        label: function () {
+            return this.name || "Answer";
+        },
+        palletteLabel: "Answer"
+    });
+</script>
+
+<script type="text/html" data-template-name="ari_answer">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+<!-- ari_answer section  end                                                -->
+
+<!-- ari_continueindialplan section  start                                                -->
+<script type="text/javascript">
+    RED.nodes.registerType('ari_continueindialplan', {
+        category: 'asterisk',
+        color: '#66ff66',
+        icon: 'font-awesome/fa-asterisk',
+        defaults: {
+            name: { value: "Continue in dialplan" }
+        },
+        inputs: 1,
+        outputs: 1,
+        label: function () {
+            return this.name || "Continue in dialplan";
+        },
+        palletteLabel: "Continue in dialplan"
+    });
+</script>
+
+<script type="text/html" data-template-name="ari_continueindialplan">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+<!-- ari_continueindialplan section  end                                                -->
+
+<script type="text/javascript">
+    RED.nodes.registerType('ari_bridgedial', {
+        category: 'asterisk',
+        color: '#339933',
+        icon: 'font-awesome/fa-asterisk',
+        defaults: {
+            name: { value: "Bridge Dial" },
+            destination: { value: "" },
+            callerId: {},
+            connected_event: { value: false },
+            ended_event: { value: false },
+            dtmf_event: { value: false }
+        },
+        inputs: 1,
+        outputs: 2,
+        outputLabels: ["a party", "b party"],
+        label: function () {
+            return this.name || "Bridge Dial";
+        },
+        palletteLabel: "Bridge Dial"
+    });
+</script>
+
+<script type="text/html" data-template-name="ari_bridgedial">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-destination"><i class="fa fa-tag"></i>Destination</label>
+        <input type="text" id="node-input-destination" placeholder="PJSIP/1000">
+    </div>
+    <div class="form-row">
+        <label for="node-input-callerId"><i class="fa fa-tag"></i>Caller ID</label>
+        <input type="text" id="node-input-callerId" placeholder="2000">
+    </div>
+ </script>
+<!-- ari_bridgedial section  end                                                -->
+
+<script type="text/javascript">
+    RED.nodes.registerType('ari_originate', {
+        category: 'asterisk',
+        color: '#339933',
+        icon: 'font-awesome/fa-asterisk',
+        defaults: {
+            name: { value: "Originate" },
+            server: { value: "", type: "asterisk_ari" },
+            app_name: { value: "TestApp" },
+            topics: { value: "" },
+            destination: { value: "" },
+            callerId: {},
+            connected_event: { value: false },
+            ended_event: { value: false },
+            dtmf_event: { value: false }
+        },
+        inputs: 1,
+        outputs: 2,
+        outputLabels: ["event", "?"],
+        label: function () {
+            return this.name || "Originate";
+        },
+        palletteLabel: "Originate"
+    });
+</script>
+
+<script type="text/html" data-template-name="ari_originate">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-server"><i class="fa fa-tag"></i>Asterisk Server</label>
+        <input type="text" id="node-input-server" >
+    </div>
+    <div class="form-row">
+        <label for="node-input-app_name"><i class="fa fa-tag"></i>Application Name</label>
+        <input type="text" id="node-input-app_name" placeholder="Test-App">
+    </div>
+    <div class="form-row">
+        <label for="node-input-topics"><i class="fa fa-tag"></i>Topics</label>
+        <!--input type="text" id="node-input-topics" placeholder="StasisStart"-->
+        
+        <select id="node-input-topics" name="node-input-topics" size="5" multiple>
+            <option selected="selected">StasisStart</option>
+            <option>StasisEnd</option>
+            <option>ContactStatusChange</option>
+            <option>DeviceStateChanged</option>
+            <option>EndpointStateChange</option>
+            <option>Dial</option>
+            <option>ChannelConnectedLine</option>
+            
+            <!--option>All</option-->
+            <option>ChannelHangupRequest</option>
+            <option>TextMessageReceived</option>
+            <option>ApplicationMoveFailed</option>
+            <option>ApplicationReplaced</option>
+            <option>BridgeCreated</option>
+            <option>BridgeDestroyed</option>
+            <option>BridgeMerged</option>
+            <option>BridgeBlindTransfer</option>
+            <option>BridgeAttendedTransfer</option>
+            <option>BridgeVideoSourceChanged</option>
+            <option>ChannelCreated</option>
+            <option>ChannelDestroyed</option>
+            <option>ChannelEnteredBridge</option>
+            <option>ChannelLeftBridge</option>
+            <option>ChannelStateChange</option>
+            <option>ChannelDtmfReceived</option>
+            <option>ChannelDialplan</option>
+            <option>ChannelCallerId</option>
+            <option>ChannelUserevent</option>
+            <option>ChannelVarset</option>
+            <option>ChannelToneDetected</option>
+            <option>ChannelTalkingStarted</option>
+            <option>ChannelTalkingFinished</option>
+            <option>ChannelHold</option>
+            <option>ChannelUnhold</option>
+            <option>PeerStatusChange</option>
+            <option>PlaybackStarted</option>
+            <option>PlaybackContinuing</option>
+            <option>PlaybackFinished</option>
+            <option>RecordingStarted</option>
+            <option>RecordingFinished</option>
+            <option>RecordingFailed</option>
+          </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-destination"><i class="fa fa-tag"></i>Endpoint</label>
+        <input type="text" id="node-input-destination" placeholder="PJSIP/number[@trunk name]">
+    </div>
+    <div class="form-row">
+        <label for="node-input-callerId"><i class="fa fa-tag"></i>Caller ID</label>
+        <input type="text" id="node-input-callerId" placeholder="2000">
+    </div>
+ </script>
+
+ <script type="text/html" data-help-name="ari_originate">
+    <!-- data-help-name identifies the node type this help is for             -->
+<!-- This content appears in the Info sidebar when a node is selected     -->
+<!-- The first <p> is used as the pop-up tool tip when hovering over a    -->
+<!-- node in the palette.                                                 -->
+<p>Define and registered an ari application, call an endpoint and receive all the events to the application</p>
+<p>Endpoint can be configured in the node settings, or
+    overridden by values in the incoming message's request body (payload.destination property : ex PJSIP/1000) </p>
+<p>event values
+<ul>
+    <li>StasisStart,</li>
+    <li>ChannelHangupRequest,</li>
+    <li>StasisEnd,</li>
+    <li>others...</li>
+</ul>
+</p>
+
+<h3>Inputs</h3>
+<dl class="message-properties">
+    <dt>payload
+        <span class="property-type">object</span>
+    </dt>
+    <dd>
+        Incoming message's <code>payload</code> can have destination property to define endpoint to call..
+    </dd>
+</dl>
+
+
+<h3>Outputs</h3>
+<dl class="message-properties">
+    <dt>Event</dt>
+    <dd>
+        <p>Output an object called <b>msg</b> containing
+            <b>msg.payload</b>. msg.payload is composed of
+        <ul>
+            <li><b>event</b> (string), </li>
+            <li><b>channel</b> (object),</li>
+            <li><b>details</b> (object)</li>
+            <li><b>_msgid</b> (string).</li>
+
+        </ul>
+        </p>
+    </dd>
+    <dt>Dtmf</dt>
+    <dd>
+        <p>Output an object called <b>msg</b> containing
+            <b>msg.payload</b>. msg.payload is composed of
+        <ul>
+            <li><b>event</b> (string), </li>
+        </ul>
+        </p>
+
+    </dd>
+    <dt>Debug</dt>
+    <dd>
+        <p>Output an object called <b>msg</b> containing
+            <b>msg.payload</b>. msg.payload is composed of
+        <ul>
+            <li><b>event</b> name (string), </li>
+            <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
+            <li><b>channelId</b> identifier of channel (string)  - optional</li>
+            <li><b>payload</b> event (object)</li>
+            <li><b>_msgid</b> (string).</li>
+        </ul>
+        </p>
+    </dd>
+</dl>
+
+<h3>Details</h3>
+<p>
+    The "Status Storer" node works as follows:
+<ul>
+    <li>Each incoming message's <code>payload</code> is stored in a buffer.</li>
+    <li>Once the buffer reaches a certain size (specified by the <code>bufferSize</code> parameter), or after a defined
+        interval (specified by the <code>flushInterval</code> parameter), the contents of the buffer are sent in a
+        single POST request to the backend API.</li>
+    <li>The backend URL, access token, buffer size, and flush interval can be configured in the node settings, or
+        overridden by values in the incoming message's request body.</li>
+</ul>
+</p>
+
+<h3>Node Configuration</h3>
+<dl class="message-properties">
+    <dt>application name
+        <span class="property-type">string</span>
+    </dt>
+    <dd>
+        The name of the stasis application to register. This application didn't require to be declared in the dialplan.
+        Default: <code>Originate</code>.
+    </dd>
+
+    <dt>Asterisk server
+        <span class="property-type">object</span>
+    </dt>
+    <dd>
+        The id of the Asterisk server to use.
+    </dd>
+
+</dl>
+
+<h3>Examples of Use:</h3>
+<ul>
+    <li><strong>Example 1:</strong>
+        <ul>
+            <li>Configuration: <code>bufferSize=2</code>, <code>flushInterval=5000</code>.</li>
+            <li>Behavior: After receiving two messages, they will be sent as a bulk request to the backend.</li>
+        </ul>
+    </li>
+    <li><strong>Example 2:</strong>
+        <ul>
+            <li>Configuration: <code>bufferSize=10</code>, <code>flushInterval=30000</code>.</li>
+            <li>Behavior: Messages are sent in batches of 10, or after 30 seconds if fewer than 10 messages have been
+                received.</li>
+        </ul>
+    </li>
+</ul>
+
+<p>
+    This node receives all the events for the stasis application.
+</p>
+
+</script>
+
+<!-- ari_originate section  end                                                -->

@@ -11,9 +11,9 @@
     },
     {
         "id": "6007ce32c3f25414",
-        "type": "ari_client",
+        "type": "ari_incoming",
         "z": "b283eef3.e91d1",
-        "name": "ARI Client",
+        "name": "ARI Incoming",
         "server": "f8d9ef1673cd981b",
         "app_name": "application",
         "topics": [
