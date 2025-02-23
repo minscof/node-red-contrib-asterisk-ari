@@ -1,4 +1,4 @@
-var toto = require('ari-client');
+var client = require('ari-client');
 
 module.exports = function (RED) {
     "use strict";
@@ -16,7 +16,7 @@ module.exports = function (RED) {
                     function connectToAsterisk() {
                         console.log(`Try to connect node ${node.name} to Asterisk...`);
                         try {
-                            toto.connect(url, username, password, function (err, client) {
+                            client.connect(url, username, password, function (err, ari) {
                                 if (err) {
                                     console.error(`Connection failed for node ${node.name} to Asterisk : err= ${err.message}`);
                                     node.error(err);
@@ -34,9 +34,9 @@ module.exports = function (RED) {
 
                                     // Appelle la fonction principale
 
-                                    function _checkConnection(client) {
+                                    function _checkConnection(ari) {
                                         console.debug(`Start checkConnection for node ${node.name} every 4000 ms`);
-                                        client.asterisk.ping((err, info) => {
+                                        ari.asterisk.ping((err, info) => {
                                             if (err) {
                                                 console.error(`Ping failed for connection node ${node.name}`);
                                                 node.status({ fill: "red", shape: "dot", text: "disconnected" });
@@ -51,21 +51,21 @@ module.exports = function (RED) {
                                         });
                                     };
 
-                                    client.on('WebSocketMaxRetries', (err) => {
+                                    ari.on('WebSocketMaxRetries', (err) => {
                                         console.log(`WebSocketMaxRetries node ${node.name} err ${err}..`);
                                         node.connected = false;
                                         node.error(err);
                                         node.status({ fill: "red", shape: "dot", text: "disconnected" });
                                         /*
                                         retryIntervalId = setInterval(function ()clientLoaded {
-                                            _checkConnection(client);
+                                            _checkConnection(ari);
                                         }, 4000);
                                         */
                                         retryIntervalId = setInterval(connectToAsterisk, 4000);
                                         console.debug(`setInterval Bis retryIntervalId = ${retryIntervalId}`);
                                     });
 
-                                    client.asterisk.getInfo((err, info) => {
+                                    ari.asterisk.getInfo((err, info) => {
                                         if (err || !info.system || !info.system.entity_id) {
                                             console.error(`Impossible d'obtenir l'ID de la connexion node ${node.name}`);
                                             reject(new Error("Whoops2! what about a retry ?"));
@@ -75,15 +75,15 @@ module.exports = function (RED) {
 
                                         var asterikId = info.system.entity_id; // Utilisation de l'entity_id
 
-                                        connections[asterikId] = client;
+                                        connections[asterikId] = ari;
                                         console.debug(`Cancel _checkConnection to Asterisk ${retryIntervalId} for ${node.name}!`);
                                         clearInterval(retryIntervalId);
 
                                         console.debug(`Connection success to Asterisk Id = ${asterikId} for app = ${app} for node ${node.name}`);
-                                        clientLoaded(client, app, topics, node, asterikId);
+                                        clientLoaded(ari, app, topics, node, asterikId);
                                         resolve({
                                             asterikId: asterikId,
-                                            client: client
+                                            ari: ari
                                         });
                                         console.debug(`Promise resolved for ${app} node ${node.name} - la promesse a été tenue et cela semble vrai ...`);
                                     });
@@ -119,13 +119,25 @@ module.exports = function (RED) {
             */
 
             setchan: function (channel) {
-                var channelId = channel.id;
-                channels[channelId] = channel;
-                return channelId;
+                if (channel) {
+                    var channelId = channel.id;
+                    channels[channelId] = channel;
+                    let keyCount = Object.keys(channels).length;
+                    console.debug(`setchan ${channelId} - count ${keyCount} `);
+                    return channelId;
+                }
+                console.debug(`error setchan channel is undefined`);
+                return false;
             },
 
             getchan: function (channelId) {
                 return channels[channelId];
+            },
+
+            unsetchan: function(channelId) {
+                let keyCount = Object.keys(channels).length;
+                console.debug(`unsetchan before channel ${channelId} - count ${keyCount}`);
+                return delete channels[channelId];
             }
         };
         //console.debug(`initialize the singleton when nodered start or at first installation of ths module.`);
@@ -133,7 +145,7 @@ module.exports = function (RED) {
     }());
 
 
-    function clientLoaded(client, app, topics, node, asterikId) {
+    function clientLoaded(ari, app, topics, node, asterikId) {
         node.status({ fill: "green", shape: "dot", text: "connected" });
         //console.debug(`topics debug ${topics}`);
         //console.log("topics2 =: %o", topics);
@@ -157,7 +169,7 @@ module.exports = function (RED) {
         topics.forEach(event => {
             if (eventCallbacks[event]) {
                 console.debug(`activate event ${event}`);
-                client.on(event, eventCallbacks[event]);
+                ari.on(event, eventCallbacks[event]);
             }
         });
         */
@@ -187,7 +199,7 @@ module.exports = function (RED) {
 
             if (typeof callback === 'function') {
                 //console.debug(`activate event ${event} for node ${node.name}`);
-                client.on(event, callback);
+                ari.on(event, callback);
             } else {
                 console.debug(`❌ function ${callbackName} not yet implemented for node ${node.name}...`);
             }
@@ -245,7 +257,7 @@ module.exports = function (RED) {
             var dialed = event.args[0] === 'dialed';
             if (!dialed) {
                 console.log(`StasisStart before node send ${node.name} for ${channel.id} and asteriskId ${asterikId}`);
-                node.send([{ event: 'StasisStart', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+                node.send([{ event: 'StasisStart', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
 
             } else {
                 console.log(`StasisStart event dialed ${event.args[0]} for ${channel.id}`);
@@ -254,104 +266,109 @@ module.exports = function (RED) {
 
         function _stasisEnd(event, channel) {
             console.log(`StasisEnd event for ${channel.id}`);
-            node.send([{ event: 'StasisEnd', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'StasisEnd', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _deviceStateChanged(event, channel) {
-            node.send([{ event: 'DeviceStateChanged', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'DeviceStateChanged', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _endpointStateChange(event, channel) {
-            node.send([{ event: 'EndpointStateChange', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'EndpointStateChange', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _channelConnectedLine(event, channel) {
-            node.send([{ event: 'ChannelConnectedLine', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'ChannelConnectedLine', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _contactStatusChange(event, channel) {
-            node.send([{ event: 'ContactStatusChange', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'ContactStatusChange', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _applicationMoveFailed(event, channel) {
-            node.send([{ event: 'ApplicationMoveFailed', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'ApplicationMoveFailed', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _applicationReplaced(event, channel) {
-            node.send([{ event: 'ApplicationReplaced', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'ApplicationReplaced', asteriskId: asterikId, payload: event }, null]);
         }
 
         function _channelCreated(event, channel) {
-            node.send([{ event: 'ChannelCreated', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'ChannelCreated', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _channelEnteredBridge(event, channel) {
-            node.send([{ event: 'ChannelEnteredBridge', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'ChannelEnteredBridge', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _channelLeftBridge(event, channel) {
-            node.send([{ event: 'ChannelLeftBridge', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'ChannelLeftBridge', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _channelStateChange(event, channel) {
             if (event.channel.state = 'Ringing') {
                 console.log("📞 ringing...");
             }
-            node.send([{ event: 'ChannelStateChange', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'ChannelStateChange', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _channelDtmfReceived(event, channel) {
-            node.send([{ event: 'ChannelDtmfReceived', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'ChannelDtmfReceived', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _channelDialplan(event, channel) {
-            node.send([{ event: 'ChannelDialplan', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'ChannelDialplan', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _channelCallerId(event, channel) {
-            node.send([{ event: 'ChannelCallerId', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'ChannelCallerId', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _channelUserevent(event, channel) {
-            node.send([{ event: 'ChannelUserevent', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'ChannelUserevent', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _channelHangupRequest(event, channel) {
-            //node.send({ payload: { event: 'ChannelHangupRequest', channel: channel, details: event } });
+            //node.send({ payload: { event: 'ChannelHangupRequest', channelId: channel, details: event } });
             console.log(`📞 Appel raccroché - Raison : ${event.cause_txt} (Code: ${event.cause})`);
 
             if (event.cause === 21) {
                 console.log("❌ Le correspondant a refusé l'appel !");
             }
-            node.send([{ event: 'ChannelHangupRequest', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'ChannelHangupRequest', channelId: channel.id, asteriskId: asterikId, payload: event }, null]);
         }
 
         function _channelDestroyed(event, channel) {
-            node.send([{ event: 'ChannelDestroyed', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            let channelId = channel.id;
+            //connectionPool.setchan(channel)
+            node.send([{ event: 'ChannelDestroyed', channelId: channel.id, asteriskId: asterikId, payload: event }, null]);
+            /* must remove the channel*/
+            console.debug(`_channelDestroyed : unsetchan ${channelId}...`);
+            connectionPool.unsetchan(channelId);
         }
 
         function _channelToneDetected(event, channel) {
-            node.send([{ event: 'ChannelToneDetected', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'ChannelToneDetected', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _channelTalkingStarted(event, channel) {
-            node.send([{ event: 'ChannelTalkingStarted', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'ChannelTalkingStarted', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _channelTalkingFinished(event, channel) {
-            node.send([{ event: 'ChannelTalkingFinished', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'ChannelTalkingFinished', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _channelHold(event, channel) {
-            node.send([{ event: 'ChannelHold', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'ChannelHold', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _channelUnhold(event, channel) {
-            node.send([{ event: 'ChannelUnhold', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'ChannelUnhold', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _channelVarset(event, channel) {
-            node.send([{ event: 'ChannelVarset', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'ChannelVarset', channelId: channel.id, asteriskId: asterikId, payload: event }, null]);
         }
 
         function _contactStatusChange(event) {
@@ -379,7 +396,7 @@ module.exports = function (RED) {
         }
 
         function _bridgeBlindTransfer(event,channel) {
-            node.send([{ event: 'BridgeBlindTransfer', channel: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
+            node.send([{ event: 'BridgeBlindTransfer', channelId: connectionPool.setchan(channel), asteriskId: asterikId, payload: event }, null]);
         }
 
         function _bridgeAttendedTransfer(event) {
@@ -438,7 +455,7 @@ module.exports = function (RED) {
         }
         */
 
-        client.start(app);
+        ari.start(app);
 
     }
 
@@ -472,10 +489,10 @@ module.exports = function (RED) {
         node.on('input', function (msg) {
             node.status({ fill: "blue", shape: "dot" });
             this.media2 = RED.util.evaluateNodeProperty(node.config.media2, node.config.media2Type, node, msg);
-            var client = connectionPool.getconn(msg.asteriskId);
+            var ari = connectionPool.getconn(msg.asteriskId);
             var channel = connectionPool.getchan(msg.channelId);
-            var playback = client.Playback();
-            console.debug(`debug playback ${this.media2}`);
+            var playback = ari.Playback(); 
+            console.debug(`debug playback ${this.media2} - channelId ${msg.channelId}`);
             if (!this.media2) {
                 console.debug(`error playback = media not defined`);
                 node.error(`media not defined`);
@@ -500,7 +517,7 @@ module.exports = function (RED) {
         this.on("close", function () {
             // Called when the node is shutdown - eg on redeploy.
             // Allows ports to be closed, connections dropped etc.
-            // eg: node.client.disconnect();
+            // eg: node.ari.disconnect();
         });
     }
     RED.nodes.registerType("ari_playback", ari_playback);
@@ -531,11 +548,11 @@ module.exports = function (RED) {
         node.on('input', function (msg) {
             node.status({ fill: "blue", shape: "dot" });
             console.debug(`node en cours d'execution -> blue`);
-            var client = connectionPool.getconn(msg.asteriskId);
-            console.debug(`get client  = ${client}`);
+            var ari = connectionPool.getconn(msg.asteriskId);
+            console.debug(`get ari  = ${ari}`);
             var channel = connectionPool.getchan(msg.channelId);
             console.debug(`get channelId  = ${channel.id}`);
-            client.channels.answer({ channelId: channel.id }, function (err) {
+            ari.channels.answer({ channelId: channel.id }, function (err) {
                 if (err) {
                     console.debug(`error answer  = ${err}`);
                     node.error(err);
@@ -552,7 +569,7 @@ module.exports = function (RED) {
         this.on("close", function () {
             // Called when the node is shutdown - eg on redeploy.
             // Allows ports to be closed, connections dropped etc.
-            // eg: node.client.disconnect();
+            // eg: node.ari.disconnect();
         });
     }
     RED.nodes.registerType("ari_answer", ari_answer);
@@ -563,9 +580,9 @@ module.exports = function (RED) {
         var node = this;
         node.on('input', function (msg) {
             node.status({ fill: "blue", shape: "dot" });
-            var client = connectionPool.getconn(msg.asteriskId);
+            var ari = connectionPool.getconn(msg.asteriskId);
             var channel = connectionPool.getchan(msg.channelId);
-            client.channels.continueInDialplan({ channelId: channel.id }, function (err) {
+            ari.channels.continueInDialplan({ channelId: channel.id }, function (err) {
                 if (err) {
                     node.error(err);
                     node.status({});
@@ -579,7 +596,7 @@ module.exports = function (RED) {
         this.on("close", function () {
             // Called when the node is shutdown - eg on redeploy.
             // Allows ports to be closed, connections dropped etc.
-            // eg: node.client.disconnect();
+            // eg: node.ari.disconnect();
         });
     }
     RED.nodes.registerType("ari_continueindialplan", ari_continueindialplan);
@@ -592,14 +609,14 @@ module.exports = function (RED) {
         this.callerId = n.callerId;
         node.on('input', function (msg) {
             node.status({ fill: "blue", shape: "dot" });
-            var client = connectionPool.getconn(msg.asteriskId);
+            var ari = connectionPool.getconn(msg.asteriskId);
             var channel = connectionPool.getchan(msg.channelId);
             // Create outbound channel
-            var dialed = client.Channel();
-            var bridge = client.Bridge();
+            var dialed = ari.Channel();
+            var bridge = ari.Bridge();
             var bridgeid = bridge.id;
             bridge.create({ type: 'mixing, dtmf_events' }, function (err) { if (err) { throw err; } });
-            client.start(bridgeid);
+            ari.start(bridgeid);
             dialed.on('StasisStart', function (event, dialed) {
                 dialed.continue(function (err) { if (err) { throw err; } });
                 bridge.addChannel({ channel: [channel.id, dialed.id] }, function (err) {
@@ -611,7 +628,7 @@ module.exports = function (RED) {
                 var channelId = connectionPool.setchan(dialed);
                 var bmsg = {};
                 bmsg.channelId = channelId;
-                bmsg.asteriskId = client.id;
+                bmsg.asteriskId = ari.id;
                 msg.type = "connected";
                 bmsg.type = "connected";
                 bmsg.payload = { bridge: bridge.id };
@@ -633,7 +650,7 @@ module.exports = function (RED) {
                 var msg = {}
                 msg.type = "ended";
                 msg.channelId = dialed.id;
-                msg.asteriskId = client.id;
+                msg.asteriskId = ari.id;
                 msg.payload = event;
                 bridge.destroy(function (err) { });
                 if (n.ended_event) {
@@ -646,7 +663,7 @@ module.exports = function (RED) {
                 var msg = {}
                 msg.type = "DTMF";
                 msg.channelId = channel.id;
-                msg.asteriskId = client.id;
+                msg.asteriskId = ari.id;
                 msg.payload = event;
                 node.send([msg, null]);
             });
@@ -654,7 +671,7 @@ module.exports = function (RED) {
                 var msg = {};
                 msg.type = "DTMF";
                 msg.channelId = dialled.id;
-                msg.asteriskId = client.id;
+                msg.asteriskId = ari.id;
                 msg.payload = event;
                 node.send([null, msg]);
             });
@@ -667,7 +684,7 @@ module.exports = function (RED) {
         this.on("close", function () {
             // Called when the node is shutdown - eg on redeploy.
             // Allows ports to be closed, connections dropped etc.
-            // eg: node.client.disconnect();
+            // eg: node.ari.disconnect();
         });
     }
     RED.nodes.registerType("ari_bridgedial", ari_bridgedial);
@@ -692,7 +709,7 @@ module.exports = function (RED) {
                 .then(result => {
                     console.debug(`__________promesse originate réussie asterikId ${result.asterikId}`);
 
-                    var client = result.client;
+                    var ari = result.ari;
                     console.debug(`originate static output endpoint (node)  = ${n.destination} `)
                     let destination = msg.payload.destination ?? n.destination;
                     console.debug(`originate call endpoint = ${destination} `);
@@ -706,7 +723,7 @@ module.exports = function (RED) {
 
 
                     console.log("📞 Trying to call...");
-                    client.channels.originate({
+                    ari.channels.originate({
                         endpoint: destination,
                         callerId: n.callerId, // Numéro affiché
                         app: n.app_name
@@ -715,25 +732,25 @@ module.exports = function (RED) {
                             console.log(`📞 Appel en cours vers ${callee}...`);
                             /*
                                             // Écoute des événements liés à ce canal
-                                            client.on('StasisStart', event => {
+                                            ari.on('StasisStart', event => {
                                                 console.log(`✅ Appel connecté à ${callee} StasisStart appli ${n.app_name} debug event ${event}`);
                                                 msg.payload = event;
                                                 node.send([null, msg]);
                                             });
                             
-                                            client.on('ChannelHangupRequest', event => {
+                                            ari.on('ChannelHangupRequest', event => {
                                                 console.log(`❌ Appel terminé ChannelHangupRequest appli ${n.app_name} debug event ${event}`);
                                                 msg.payload = event;
                                                 node.send([null, msg]);
                                             });
                             
-                                            client.on('ChannelDestroyed', event => {
+                                            ari.on('ChannelDestroyed', event => {
                                                 console.log(`❌ Appel terminé ChannelDestroyed appli ${n.app_name} debug event ${event}`);
                                                 msg.payload = event;
                                                 node.send([null, msg]);
                                             });
                             
-                                            client.on('StasisEnd', event => {
+                                            ari.on('StasisEnd', event => {
                                                 console.log(`❌ Appel terminé StasisEnd appli ${n.app_name} debug event ${event}`);
                                                 msg.payload = event;
                                                 node.send([null, msg]);
@@ -753,7 +770,7 @@ module.exports = function (RED) {
         this.on("close", function () {
             // Called when the node is shutdown - eg on redeploy.
             // Allows ports to be closed, connections dropped etc.
-            // eg: node.client.disconnect();
+            // eg: node.ari.disconnect();
         });
 
     }
