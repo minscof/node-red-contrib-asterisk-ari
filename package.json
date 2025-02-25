@@ -1,19 +1,19 @@
 {
   "name": "@minscof/node-red-contrib-asterisk-ari",
-  "version": "2025.0.12",
+  "version": "2025.1.01",
   "description": "Package for Controlling Asterisk via ARI",
   "homepage": "https://github.com/minscof/node-red-contrib-asterisk-ari/",
   "bugs": {
     "url": " https://github.com/minscof/node-red-contrib-asterisk-ari/issues"
   },
   "engines": {
-    "node": ">=18.2.0"
-  }, 
+    "node": ">=20.0.0"
+  },
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 0"
   },
- "keywords": [
+  "keywords": [
     "node-red",
     "node-red-node",
     "node-red-contrib",
@@ -35,9 +35,8 @@
     }
   },
   "dependencies": {
-    "ari-client": "^2.2.0"
+    "@ipcom/asterisk-ari": "^0.0.158"
   },
   "resolutions": {
-  "cookiejar": "2.1.4"
   }
 }

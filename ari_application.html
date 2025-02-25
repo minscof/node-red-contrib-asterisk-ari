@@ -6,11 +6,10 @@
         defaults: {
             name: { value: "Application" },
             server: { value: "", type: "asterisk_ari" },
-            app_name: { value: "TestApp" },
-            topics: { value: "" }
+            app_name: { value: "MyApp" }
         },
         outputs: 2,
-        outputLabels: ["Event", "Dtmf"],
+        outputLabels: ["starting", "event"],
         label: function () {
             return this.name || "Application";
         },
@@ -41,7 +40,7 @@
         <label for="node-input-app_name"><i class="fa fa-tag"></i>Application Name</label>
         <input type="text" id="node-input-app_name" placeholder="Test-App">
     </div>
-    <div class="form-row">
+    <div class="form-row"  style="display: none;">
         <label for="node-input-topics"><i class="fa fa-tag"></i>Topics</label>
         <!--input type="text" id="node-input-topics" placeholder="StasisStart"-->
         
@@ -223,7 +222,8 @@
             media2Type: { value: "msg" }
         },
         inputs: 1,
-        outputs: 1,
+        outputs: 2,
+        outputLabels: ["end", "event"],
         label: function () {
             return this.name || "Playback";
         },
@@ -281,6 +281,8 @@
             name: { value: "Hangup" }
         },
         inputs: 1,
+        outputs:1,
+        outputLabels: ["end"],
         label: function () {
             return this.name || "Hangup";
         },
@@ -311,6 +313,7 @@
         },
         inputs: 1,
         outputs: 1,
+        outputLabels: ["answered"],
         label: function () {
             return this.name || "Answer";
         },
@@ -337,6 +340,7 @@
         },
         inputs: 1,
         outputs: 1,
+        outputLabels: ["end"],
         label: function () {
             return this.name || "Continue in dialplan";
         },
@@ -360,14 +364,12 @@
         defaults: {
             name: { value: "Bridge Dial" },
             destination: { value: "" },
-            callerId: {},
-            connected_event: { value: false },
-            ended_event: { value: false },
-            dtmf_event: { value: false }
+            app_name: { value: "MyApp" },
+            callerId: {}
         },
         inputs: 1,
         outputs: 2,
-        outputLabels: ["a party", "b party"],
+        outputLabels: ["end", "event"],
         label: function () {
             return this.name || "Bridge Dial";
         },
@@ -399,17 +401,13 @@
         defaults: {
             name: { value: "Originate" },
             server: { value: "", type: "asterisk_ari" },
-            app_name: { value: "TestApp" },
-            topics: { value: "" },
+            app_name: { value: "MyApp" },
             destination: { value: "" },
-            callerId: {},
-            connected_event: { value: false },
-            ended_event: { value: false },
-            dtmf_event: { value: false }
+            callerId: {}
         },
         inputs: 1,
         outputs: 2,
-        outputLabels: ["event", "?"],
+        outputLabels: ["calling", "event"],
         label: function () {
             return this.name || "Originate";
         },
@@ -430,7 +428,7 @@
         <label for="node-input-app_name"><i class="fa fa-tag"></i>Application Name</label>
         <input type="text" id="node-input-app_name" placeholder="Test-App">
     </div>
-    <div class="form-row">
+    <div class="form-row"  style="display: none;">
         <label for="node-input-topics"><i class="fa fa-tag"></i>Topics</label>
         <!--input type="text" id="node-input-topics" placeholder="StasisStart"-->
         
