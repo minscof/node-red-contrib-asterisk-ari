@@ -1,12 +1,43 @@
 <script type="text/javascript">
+    function updateAppList() {
+        $("#node-input-app_name").empty(); // Vider la liste
+
+        let serverId = $("#node-input-server").val(); // ID du serveur sélectionné
+        if (!serverId) return;
+
+        let serverConfig = RED.nodes.node(serverId); // Récupérer le nœud serveur
+        console.debug("🔍 serverConfig récupéré :", serverConfig);
+
+        if (serverConfig && serverConfig.apps) {
+            console.debug("✅ Liste d'apps trouvée :", serverConfig.apps);
+            
+            let appList = serverConfig.apps.split(',').map(a => a.trim());
+            let dropdown = $("#node-input-app_name");
+
+            dropdown.empty();
+            appList.forEach(app => {
+                dropdown.append(new Option(app, app));
+            });
+
+            // 🔥 Restaurer la valeur précédente si elle existe
+            if (this.app_name) {
+                dropdown.val(this.app_name);
+            } else {
+                dropdown.val($("#node-input-app_name option:first").val());
+            }
+        } else {
+            console.debug("❌ Aucune application trouvée.");
+        }
+    }
+
     RED.nodes.registerType('ari_incoming', {
         category: 'asterisk',
         color: '#989898',
         icon: 'font-awesome/fa-asterisk',
         defaults: {
             name: { value: "Application" },
-            server: { value: "", type: "asterisk_ari" },
-            app_name: { value: "MyApp" }
+            server: { value: "", type: "asterisk_ari", required: true },
+            app_name: { value: "" }
         },
         outputs: 2,
         outputLabels: ["starting", "event"],
@@ -16,12 +47,24 @@
         palletteLabel: "Application",
 
         oneditprepare: function () {
+            console.debug("ari_incoming - oneditprepare START");
+
+            // Charger la liste d'applications au démarrage
+            updateAppList();
+
+            // Mettre à jour la liste quand on change de serveur
+            $("#node-input-server").on("change", function () {
+                updateAppList();
+            });
+
+            
             // Préparer la sélection multiple à l'ouverture de l'éditeur
             const selectedValues = this.topics || [];
             $('#node-input-topics').val(selectedValues);
         },
         oneditsave: function () {
             // Sauvegarder les valeurs sélectionnées
+            this.app_name = $("#node-input-app_name").val();
             this.topics = $('#node-input-topics').val() || [];
         }
     });
@@ -33,14 +76,16 @@
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
     <div class="form-row">
-        <label for="node-config-input-server"><i class="fa fa-tag"></i>Asterisk Server</label>
-        <input type="text" id="node-input-server" >
+        <label for="node-input-server"><i class="fa fa-tag"></i>Asterisk Server</label>
+        <input type="text" id="node-input-server">
     </div>
     <div class="form-row">
         <label for="node-input-app_name"><i class="fa fa-tag"></i>Application Name</label>
-        <input type="text" id="node-input-app_name" placeholder="Test-App">
+        <select id="node-input-app_name">
+            <!-- Options will be added dynamically -->
+        </select>
     </div>
-    <div class="form-row"  style="display: none;">
+    <div class="form-row" style="display: none;">
         <label for="node-input-topics"><i class="fa fa-tag"></i>Topics</label>
         <!--input type="text" id="node-input-topics" placeholder="StasisStart"-->
         
@@ -128,7 +173,7 @@
         <ul>
             <li><b>event</b> name (string), </li>
             <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
-            <li><b>channelId</b> identifier of channel (string)  - optional</li>
+            <li><b>channelId</b> identifier of channel (string) - optional</li>
             <li><b>payload</b> event (object)</li>
             <li><b>_msgid</b> (string).</li>
         </ul>
@@ -281,7 +326,7 @@
             name: { value: "Hangup" }
         },
         inputs: 1,
-        outputs:1,
+        outputs: 1,
         outputLabels: ["end"],
         label: function () {
             return this.name || "Hangup";
@@ -400,8 +445,8 @@
         icon: 'font-awesome/fa-asterisk',
         defaults: {
             name: { value: "Originate" },
-            server: { value: "", type: "asterisk_ari" },
-            app_name: { value: "MyApp" },
+            server: { value: "", type: "asterisk_ari", required: true },
+            app_name: { value: "" },
             destination: { value: "" },
             callerId: {}
         },
@@ -411,7 +456,28 @@
         label: function () {
             return this.name || "Originate";
         },
-        palletteLabel: "Originate"
+        palletteLabel: "Originate",
+        oneditprepare: function () {
+            console.debug("ari_originate - oneditprepare START");
+
+            // Charger la liste d'applications au démarrage
+            updateAppList();
+
+            // Mettre à jour la liste quand on change de serveur
+            $("#node-input-server").on("change", function () {
+                updateAppList();
+            });
+
+            
+            // Préparer la sélection multiple à l'ouverture de l'éditeur
+            const selectedValues = this.topics || [];
+            $('#node-input-topics').val(selectedValues);
+        },
+        oneditsave: function () {
+            // Sauvegarder les valeurs sélectionnées
+            this.app_name = $("#node-input-app_name").val();
+            this.topics = $('#node-input-topics').val() || [];
+        }
     });
 </script>
 
@@ -421,14 +487,16 @@
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
     <div class="form-row">
-        <label for="node-config-input-server"><i class="fa fa-tag"></i>Asterisk Server</label>
-        <input type="text" id="node-input-server" >
+        <label for="node-input-server"><i class="fa fa-tag"></i>Asterisk Server</label>
+        <input type="text" id="node-input-server">
     </div>
     <div class="form-row">
         <label for="node-input-app_name"><i class="fa fa-tag"></i>Application Name</label>
-        <input type="text" id="node-input-app_name" placeholder="Test-App">
+        <select id="node-input-app_name">
+            <!-- Options will be added dynamically -->
+        </select>
     </div>
-    <div class="form-row"  style="display: none;">
+    <div class="form-row" style="display: none;">
         <label for="node-input-topics"><i class="fa fa-tag"></i>Topics</label>
         <!--input type="text" id="node-input-topics" placeholder="StasisStart"-->
         

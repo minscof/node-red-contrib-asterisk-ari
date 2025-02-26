@@ -1,6 +1,6 @@
 {
   "name": "@minscof/node-red-contrib-asterisk-ari",
-  "version": "2025.1.01",
+  "version": "2025.1.1",
   "description": "Package for Controlling Asterisk via ARI",
   "homepage": "https://github.com/minscof/node-red-contrib-asterisk-ari/",
   "bugs": {

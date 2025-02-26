@@ -19,7 +19,7 @@ It uses Rest api from Asterisk : ari
 Have Node-RED installed and working, if you need to
 install Node-RED see [here](https://nodered.org/docs/getting-started/installation).
 
-- [Node.js](https://nodejs.org) v18.2.0+
+- [Node.js](https://nodejs.org) v20.0.0+
 - [Node-RED](https://nodered.org/) v3.1.1+
 
 ## Installation

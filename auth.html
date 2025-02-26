@@ -1,36 +1,65 @@
 <script type="text/javascript">
-    RED.nodes.registerType('asterisk_ari', {
-        category: 'config',
-        credentials: {
-            url: { type: "text" },
-            username: { type: "text" },
-            password: { type: "text" }
-        },
-        label: function () {
-            return this.url;
+  RED.nodes.registerType('asterisk_ari', {
+    category: 'config',
+    defaults: {
+      url: { type: "text", required: true },
+      apps: { type: "text", required: true }
+    },
+    credentials: {
+      username: { type: "text", required: true },
+      password: { type: "password", required: true }
+    },
+    label: function () {
+      return this.url;
+    },
+    oneditprepare: function () {
+      /*
+      console.debug("🛠️  Données actuelles du nœud :", this);
+
+      if (this.apps) {
+        console.debug("✅ apps détecté :", this.apps);
+      } else {
+        console.debug("❌ apps non trouvé !");
+      }
+      */
+
+      var node = this;
+      $("#node-config-dialog-ok").on("click", function () {
+        if (node.url && node.username && node.password && node.apps) {
+          return true;
+        } else {
+          return false;
         }
-    });
+      });
+    }
+  });
 </script>
 
 <script type="text/x-red" data-template-name="asterisk_ari">
-  <div class="form-row"></
+  <div class="form-row">
       <label for="node-config-input-url">URL</label>
-      <input type="text" id="node-config-input-url" placeholder="http://localhost:8088">
+      <input type="text" id="node-config-input-url" placeholder="http://localhost:8088" required>
   </div>
   
   <div class="form-row">
       <label for="node-config-input-username">Username</label>
-      <input type="text" id="node-config-input-username" placeholder="asterisk">
+      <input type="text" id="node-config-input-username" placeholder="asterisk" required>
   </div>
 
   <div class="form-row">
     <label for="node-config-input-password">Password</label>
-    <input type="text" id="node-config-input-password" placeholder="asterisk">
-</div>
+    <input type="password" id="node-config-input-password" placeholder="asterisk" required>
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-apps">Applications</label>
+    <input type="text" id="node-config-input-apps" placeholder="app1,app2,app3" required>
+  </div>
 </script>
 
 <script type="text/x-red" data-help-name="asterisk_ari">
    <p>Creates a new ARI Server Credentials </p>
    <h3>Details</h3>
-   <p>Enter your url, username and password</p>
+   <p>Enter your url, username, password and at least one app</p>
+   <p>Enter a comma-separated list of applications names that you want to connect to</p>
 </script>

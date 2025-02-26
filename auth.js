@@ -1,16 +1,20 @@
 module.exports = function (RED) {
-  function asterisk_ari(n) {
-    RED.nodes.createNode(this, n);
-    this.url = n.url;
-    this.username = n.username;
-    this.password = n.password;
-  }
-  RED.nodes.registerType("asterisk_ari", asterisk_ari, {
-    credentials: {
-      url: { type: "text" },
-      username: { type: "text" },
-      password: { type: "text" }
+    function AsteriskAriNode(n) {
+        RED.nodes.createNode(this, n);
+        this.url = n.url;
+        this.apps = n.apps || ""; // Liste d'applications sous forme de chaîne
+        this.credentials = this.credentials || {};
     }
-  });
 
-}
+    RED.nodes.registerType("asterisk_ari", AsteriskAriNode, {
+        category: "config",
+        defaults: {
+            url: { type: "text", required: true }, // ex http://localhost:8088
+            apps: { value: "", required: true } // Chaîne de texte (ex: "app1,app2,app3")
+        },
+        credentials: {
+            username: { type: "text", required: true },
+            password: { type: "password", required: true }
+        }
+    });
+};
