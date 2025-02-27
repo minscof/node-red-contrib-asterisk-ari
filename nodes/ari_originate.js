@@ -1,7 +1,9 @@
 const { connectionPool } = require("../lib/ari-client");
-const { handleStasisStartEvent,handleChannelEvent, handleEvent } = require("../lib/helpers");
+const { handleStasisStartEvent, handleStasisEndEvent, handleChannelEvent, handleEvent } = require("../lib/helpers");
 
 module.exports = function (RED) {
+    "use strict";
+
     function ari_originate(n) {
         RED.nodes.createNode(this, n);
         const node = this;
@@ -9,49 +11,20 @@ module.exports = function (RED) {
         node.server = RED.nodes.getNode(n.server);
         node.destination = n.destination;
         node.callerId = n.callerId;
-/*
-        // Helper function to handle common channel events
-        function handleChannelEvent(node, event, eventName, channelId) {
-            const detail = Object.fromEntries(
-                Object.entries(event).filter(([key]) => key !== 'instanceChannel')
-            );
-            const msg = { event: eventName, channelId: channelId, asteriskId: detail.asterisk_id, payload: detail };
-            console.debug(`${eventName} : ${channelId} detail :`, detail);
-            node.send([null, msg]);
-        }
 
-        // Helper function to handle common event
-        function handleEvent(node, event, eventName) {
-            const detail = Object.fromEntries(
-                Object.entries(event).filter(([key]) => key !== 'instanceChannel')
-            );
-            const msg = { event: eventName, asteriskId: detail.asterisk_id, payload: detail };
-            console.debug(`${eventName} detail :`, detail);
-            node.send([null, msg]);
-        }
-*/
         async function initializeConnection() {
             if (node.server && node.server.credentials && node.server.apps) {
-                const apps = node.server.credentials.apps.split(',');
-                console.debug(`ari_originate url = ${node.server.credentials.url} application = ${n.app_name} apps =`, apps);
-                const setcon_promise_originate = connectionPool.setconn(node.server.credentials.url, node.server.credentials.username, node.server.credentials.password, n.app_name, apps, n.topics, node);
-                console.debug(`ari_originate ${n.name} app ${n.app_name} initializing...`);
+                const apps = node.server.apps.split(',');
+                console.debug(`ari_originate url = ${node.server.credentials.url} app: ${n.app} apps: `, apps);
+                const setcon_promise_originate = connectionPool.setconn(node.server.credentials.url, node.server.credentials.username, node.server.credentials.password, n.app, apps, n.topics, node);
+                console.debug(`ari_originate ${n.name} app: ${n.app} initializing...`);
                 try {
                     const connection = await setcon_promise_originate;
-                    console.debug(`__________promise originate success`);
+                    console.debug(`__________promise originate success app: ${n.app}`);
                     node.status({ fill: "green", shape: "dot", text: "connected" });
-                    connection.on('StasisStart', event => {
-                        console.debug(`application : ${event.application} app_name ${n.app_name}`);
-                        if (event.application == n.app_name) {
-                            handleStasisStartEvent(node, event, 'StasisStart', event.channel.id);
-                        }
-                    });
-                    connection.on('StasisEnd', event => {
-                        console.log('Channel ended:', event.channel.id);
-                        connectionPool.unsetchan(event.channel.id);
-                        handleChannelEvent(node, event, 'StasisEnd', event.channel.id)
-                        node.status({ fill: "green", shape: "dot", text: "connected" });
-                    });
+                    connection.on('StasisStart', event => handleStasisStartEvent(node, n.app, event, 'StasisStart', event.channel.id));
+
+                    connection.on('StasisEnd', event => handleStasisEndEvent(node, n.app, event, 'StasisEnd', event.channel.id));
 
                     connection.on('ChannelDestroyed', event => handleChannelEvent(node, event, 'ChannelDestroyed', event.channel.id));
                     connection.on('ChannelHangupRequest', event => handleChannelEvent(node, event, 'ChannelHangupRequest', event.channel.id));
@@ -102,7 +75,7 @@ module.exports = function (RED) {
                 console.log("📞 Trying to call...");
                 await channel.originate({
                     endpoint: destination,
-                    app: n.app_name,
+                    app: n.app,
                     callerId: node.callerId
                 });
 

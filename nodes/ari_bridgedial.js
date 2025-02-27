@@ -1,7 +1,9 @@
 const { connectionPool } = require("../lib/ari-client");
-const { handleChannelEvent, handleEvent } = require("../lib/helpers");
+const { handleStasisStartEvent, handleStasisEndEvent, handleChannelEvent, handleEvent } = require("../lib/helpers");
 
 module.exports = function (RED) {
+    "use strict";
+    
     function ari_bridgedial(n) {
         RED.nodes.createNode(this, n);
         var node = this;
@@ -59,13 +61,12 @@ module.exports = function (RED) {
             channel.on('StasisEnd', async function (event, channel) {
                 console.debug(`channel StasisEnd`);
                 var msg = {}
-                msg.event = "StasisEnd";
+                msg.event = 'StasisEnd';
                 msg.channelId = dialed.id;
                 msg.payload = event;
                 //bridge.destroy(function (err) { });
                 //const remove = await connection.bridges.destroy(bridge.id);
                 //console.log(`✅ Bridge destroyed with id: ${bridge.id}`);
-                msg.event = 'StasisEnd';
                 node.send([null, msg]);                
                 node.status({});
             });
@@ -88,27 +89,17 @@ module.exports = function (RED) {
             });
 
             // Listen for specific events
-            connection.on('StasisStart', event => {
-                console.debug('New channel started:', event.channel.id);
-                const channelInstance = event.instanceChannel;
-                connectionPool.setchan(channelInstance);
-                const detail = Object.fromEntries(
-                    Object.entries(event).filter(([key]) => key !== 'instanceChannel')
-                );
-                
-                console.debug(`StasisStart2 before node send ${node.name} for ${channelInstance.id} and asteriskId ${detail.asterisk_id}`);
-                node.send([{ event: 'StasisStart', channelId: channelInstance.id, asteriskId: detail.asterisk_id, payload: detail }, null]);
-                console.debug(`setconn ended id ${detail.asterisk_id}`);
-            });
+            connection.on('StasisStart', event => handleStasisStartEvent(node, msg.app, event, 'StasisStart', event.channel.id));
+            connection.on('StasisEnd', event => handleStasisEndEvent(node, n.app, event, 'StasisEnd', event.channel.id));
+            
+            connection.on('ChannelDestroyed', event => handleChannelEvent(node, event, 'ChannelDestroyed', event.channel.id));
+            connection.on('ChannelHangupRequest', event => handleChannelEvent(node, event, 'ChannelHangupRequest', event.channel.id));
+            connection.on('ChannelDialplan', event => handleChannelEvent(node, event, 'ChannelDialplan', event.channel.id));
+            connection.on('Dial', event => handleEvent(node, event, 'Dial'));
+            connection.on('BridgeDestroyed', event => handleEvent(node, event, 'BridgeDestroyed'));
+            connection.on('PeerStatusChange', event => handleEvent(node, event, 'PeerStatusChange'));
 
-            connection.on('StasisEnd', event => {
-                console.log('Channel2 ended:', event.channel.id);
-                connectionPool.unsetchan(event.channel.id);
-                const detail = Object.fromEntries(
-                    Object.entries(event).filter(([key]) => key !== 'instanceChannel')
-                );
-                node.send([null, { event: 'StasisEnd', channelId: event.channel.id, asteriskId: detail.asterisk_id, payload: detail }]);
-            });
+/*
 
             connection.on('ChannelDestroyed', event => {
                 console.log('ChannelDestroyed2:', event.channel.id);
@@ -116,8 +107,6 @@ module.exports = function (RED) {
                     Object.entries(event).filter(([key]) => key !== 'instanceChannel')
                 );
                 node.send([null, { event: 'ChannelDestroyed', channelId: event.channel.id, asteriskId: detail.asterisk_id, payload: detail }]);
-                //node.status({ fill: "blue", shape: "dot", text: detail.cause_status });
-                //node.status({ fill: "green", shape: "dot", text: "connected" });
             });
 
             connection.on('ChannelHangupRequest', event => {
@@ -158,11 +147,7 @@ module.exports = function (RED) {
                 );
                 node.send([null, { event: 'PeerStatusChange', endpoint: '?', asteriskId: detail.asterisk_id, payload: detail }]);
             });
-
-
-
-
-
+*/
             console.log("📞 Trying to call...");
             /*
             await dialed.originate({ endpoint: this.destination, callerId: this.callerId, app: bridge.id, appArgs: 'dialed' }, function (err, response) {
@@ -189,14 +174,12 @@ module.exports = function (RED) {
                 
             });
             */
-            
-
             console.log("🔄 Setting up call...");
 
             await dialed.originate({ 
                 endpoint: this.destination, 
                 callerId: this.callerId, 
-                app: 'attendant',  //TODO attendant is hardcoded !
+                app: msg.app,  
                 appArgs: 'dialed' 
             });
 

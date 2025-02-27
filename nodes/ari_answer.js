@@ -2,6 +2,8 @@ const { connectionPool } = require("../lib/ari-client");
 const { handleChannelEvent, handleEvent } = require("../lib/helpers");
 
 module.exports = function (RED) {
+    "use strict";
+    
     function ari_answer(n) {
         RED.nodes.createNode(this, n);
         var node = this;
@@ -14,10 +16,11 @@ module.exports = function (RED) {
                 node.status({});
                 return;
             }
-            console.debug(`get channelId  = ${channel.id}`);
+            console.debug(`Answer channel: ${channel.id}`);
             try {
                 await channel.answer();
             } catch (err) {
+                console.error(`Answer channel: ${channel.id}`,err);
                 node.error(err);
                 node.status({});
                 return;

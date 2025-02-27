@@ -15,7 +15,7 @@
         "z": "b283eef3.e91d1",
         "name": "ARI Incoming",
         "server": "f8d9ef1673cd981b",
-        "app_name": "application",
+        "app": "application",
         "topics": [
             "StasisStart",
             "StasisEnd"

@@ -1,5 +1,5 @@
 const { connectionPool, getConnectionByKeyOrId } = require("../lib/ari-client");
-const { handleChannelEvent, handleEvent } = require("../lib/helpers");
+const { handleStasisStartEvent, handleStasisEndEvent, handleChannelEvent, handleEvent } = require("../lib/helpers");
 
 module.exports = function (RED) {
     "use strict";
@@ -12,32 +12,24 @@ module.exports = function (RED) {
         //get the apps from the server config node
         if (node.server && node.server.credentials && node.server.url && node.server.apps) {
             const apps = node.server.apps.split(',');
-            console.debug(`ari_incoming url = ${node.server.url} application = ${n.app_name} apps =`, apps);
-            const setcon_promise = connectionPool.setconn(node.server.url, node.server.credentials.username, node.server.credentials.password, n.app_name, apps, n.topics, node);
-            console.debug(`ari_incoming ${n.name} app ${n.app_name} initializing...`);
+            console.debug(`ari_incoming url = ${node.server.url} application = ${n.app} apps:`, apps);
+            const setcon_promise = connectionPool.setconn(node.server.url, node.server.credentials.username, node.server.credentials.password, n.app, apps, n.topics, node);
+            console.debug(`ari_incoming ${n.name} app: ${n.app} initializing...`);
             setcon_promise
                 .finally(() => console.debug(`__________cleaning incoming promise`))
                 .then(async connection => {
                     console.debug(`__________initialization incoming in progress... `);
                     // Listen for specific events
-                    connection.on('StasisStart', event => {
-                        console.debug('New channel started:', event.channel.id);
-                        const channelInstance = event.instanceChannel;
-                        connectionPool.setchan(channelInstance);
-                        const detail = Object.fromEntries(
-                            Object.entries(event).filter(([key]) => key !== 'instanceChannel')
-                        );
-                        console.debug(`StasisStart before node send ${node.name} for ${channelInstance.id} and asteriskId ${detail.asterisk_id}`);
-                        node.send([{ event: 'StasisStart', channelId: channelInstance.id, asteriskId: detail.asterisk_id, payload: detail }, null]);
-                        node.status({ fill: "blue", shape: "dot", text: `${detail.channel.caller.number} -> ${detail.channel.state}` });
-                    });
+                    connection.on('StasisStart', event => handleStasisStartEvent(node, n.app, event, 'StasisStart', event.channel.id));
 
-                    connection.on('StasisEnd', event => {
+                    connection.on('StasisEnd', event => handleStasisEndEvent(node, n.app, event, 'StasisEnd', event.channel.id));
+                        /*{
                         console.log('Channel ended:', event.channel.id);
                         connectionPool.unsetchan(event.channel.id);
                         handleChannelEvent(node, event, 'StasisEnd', event.channel.id)
                         node.status({ fill: "green", shape: "dot", text: "connected" });
                     });
+                    */
                     connection.on('ChannelDestroyed', event => handleChannelEvent(node, event, 'ChannelDestroyed', event.channel.id));
                     connection.on('ChannelHangupRequest', event => handleChannelEvent(node, event, 'ChannelHangupRequest', event.channel.id));
                     connection.on('ChannelDialplan', event => handleChannelEvent(node, event, 'ChannelDialplan', event.channel.id));

@@ -1,8 +1,8 @@
 <script type="text/javascript">
     function updateAppList(node) {
-        let dropdown = $("#node-input-app_name");
+        let dropdown = $("#node-input-app");
         dropdown.empty(); // On vide la liste avant de la remplir
-        console.log("updateAppList START app_name:",node.app_name);
+        console.log("updateAppList START app:",node.app);
 
 
         let serverId = $("#node-input-server").val(); // ID du serveur sélectionné
@@ -21,10 +21,10 @@
 
             // 🔄 Attendre la mise à jour complète avant de restaurer la valeur sélectionnée
             setTimeout(() => {
-                if (node.app_name && dropdown.find(`option[value="${node.app_name}"]`).length > 0) {
-                    dropdown.val(node.app_name);
+                if (node.app && dropdown.find(`option[value="${node.app}"]`).length > 0) {
+                    dropdown.val(node.app);
                 } else {
-                    dropdown.val($("#node-input-app_name option:first").val());
+                    dropdown.val($("#node-input-app option:first").val());
                 }
                 console.debug("✔️ Valeur sélectionnée après mise à jour :", dropdown.val());
             }, 50); // Petit délai pour laisser le DOM se mettre à jour
@@ -35,7 +35,7 @@
 
 
     function updateAppList2() {
-        $("#node-input-app_name").empty(); // Vider la liste
+        $("#node-input-app").empty(); // Vider la liste
 
         let serverId = $("#node-input-server").val(); // ID du serveur sélectionné
         if (!serverId) return;
@@ -47,7 +47,7 @@
             //console.debug("✅ Liste d'apps trouvée :", serverConfig.apps);
             
             let appList = serverConfig.apps.split(',').map(a => a.trim());
-            let dropdown = $("#node-input-app_name");
+            let dropdown = $("#node-input-app");
 
             dropdown.empty();
             appList.forEach(app => {
@@ -55,10 +55,10 @@
             });
 
             // 🔥 Restaurer la valeur précédente si elle existe
-            if (this.app_name) {
-                dropdown.val(this.app_name);
+            if (this.app) {
+                dropdown.val(this.app);
             } else {
-                dropdown.val($("#node-input-app_name option:first").val());
+                dropdown.val($("#node-input-app option:first").val());
             }
         } else {
             console.debug("❌ Aucune application trouvée.");
@@ -72,7 +72,7 @@
         defaults: {
             name: { value: "Application" },
             server: { value: "", type: "asterisk_ari", required: true },
-            app_name: { value: "" }
+            app: { value: "" }
         },
         outputs: 2,
         outputLabels: ["starting", "event"],
@@ -99,7 +99,7 @@
         },
         oneditsave: function () {
             // Sauvegarder les valeurs sélectionnées
-            this.app_name = $("#node-input-app_name").val();
+            this.app = $("#node-input-app").val();
             this.topics = $('#node-input-topics').val() || [];
         }
     });
@@ -115,8 +115,8 @@
         <input type="text" id="node-input-server">
     </div>
     <div class="form-row">
-        <label for="node-input-app_name"><i class="fa fa-tag"></i>Application Name</label>
-        <select id="node-input-app_name">
+        <label for="node-input-app"><i class="fa fa-tag"></i>Application Name</label>
+        <select id="node-input-app">
             <!-- Options will be added dynamically -->
         </select>
     </div>
@@ -444,7 +444,7 @@
         defaults: {
             name: { value: "Bridge Dial" },
             destination: { value: "" },
-            app_name: { value: "MyApp" },
+            app: { value: "MyApp" },
             callerId: {}
         },
         inputs: 1,
@@ -481,7 +481,7 @@
         defaults: {
             name: { value: "Originate" },
             server: { value: "", type: "asterisk_ari", required: true },
-            app_name: { value: "" },
+            app: { value: "" },
             destination: { value: "" },
             callerId: {}
         },
@@ -510,15 +510,15 @@
             $('#node-input-topics').val(selectedValues);
         },
         oneditsave: function () {
-            let appName = $("#node-input-app_name").val();
-            console.log(`🔍 oneditsave - app_name récupéré : ${appName}`);
+            let appName = $("#node-input-app").val();
+            console.log(`🔍 oneditsave - app récupéré : ${appName}`);
             
             if (!appName) {
-                console.warn("⚠️ Aucune valeur sélectionnée pour app_name !");
+                console.warn("⚠️ Aucune valeur sélectionnée pour app !");
             }
             // Sauvegarder les valeurs sélectionnées
-            this.app_name = $("#node-input-app_name").val();
-            console.log(`oneditsave app_name : ${this.app_name}`);
+            this.app = $("#node-input-app").val();
+            console.log(`oneditsave app : ${this.app}`);
             this.topics = $('#node-input-topics').val() || [];
         }
     });
@@ -534,8 +534,8 @@
         <input type="text" id="node-input-server">
     </div>
     <div class="form-row">
-        <label for="node-input-app_name"><i class="fa fa-tag"></i>Application Name</label>
-        <select id="node-input-app_name">
+        <label for="node-input-app"><i class="fa fa-tag"></i>Application Name</label>
+        <select id="node-input-app">
             <!-- Options will be added dynamically -->
         </select>
     </div>
