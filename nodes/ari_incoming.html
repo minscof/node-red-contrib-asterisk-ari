@@ -1,15 +1,50 @@
 <script type="text/javascript">
-    function updateAppList() {
+    function updateAppList(node) {
+        let dropdown = $("#node-input-app_name");
+        dropdown.empty(); // On vide la liste avant de la remplir
+        console.log("updateAppList START app_name:",node.app_name);
+
+
+        let serverId = $("#node-input-server").val(); // ID du serveur sélectionné
+        if (!serverId) return;
+
+        let serverConfig = RED.nodes.node(serverId); // Récupérer le nœud serveur
+        //console.debug("🔍 serverConfig récupéré :", serverConfig);
+
+        if (serverConfig && serverConfig.apps) {
+            let apps = serverConfig.apps.split(",");
+            console.debug("📜 Liste des applications :", apps);
+
+            apps.forEach(app => {
+                dropdown.append(new Option(app, app));
+            });
+
+            // 🔄 Attendre la mise à jour complète avant de restaurer la valeur sélectionnée
+            setTimeout(() => {
+                if (node.app_name && dropdown.find(`option[value="${node.app_name}"]`).length > 0) {
+                    dropdown.val(node.app_name);
+                } else {
+                    dropdown.val($("#node-input-app_name option:first").val());
+                }
+                console.debug("✔️ Valeur sélectionnée après mise à jour :", dropdown.val());
+            }, 50); // Petit délai pour laisser le DOM se mettre à jour
+        } else {
+            console.warn("⚠️ Aucun serveur sélectionné ou liste d'applications vide !");
+        }
+    }
+
+
+    function updateAppList2() {
         $("#node-input-app_name").empty(); // Vider la liste
 
         let serverId = $("#node-input-server").val(); // ID du serveur sélectionné
         if (!serverId) return;
 
         let serverConfig = RED.nodes.node(serverId); // Récupérer le nœud serveur
-        console.debug("🔍 serverConfig récupéré :", serverConfig);
+        //console.debug("🔍 serverConfig récupéré :", serverConfig);
 
         if (serverConfig && serverConfig.apps) {
-            console.debug("✅ Liste d'apps trouvée :", serverConfig.apps);
+            //console.debug("✅ Liste d'apps trouvée :", serverConfig.apps);
             
             let appList = serverConfig.apps.split(',').map(a => a.trim());
             let dropdown = $("#node-input-app_name");
@@ -48,13 +83,13 @@
 
         oneditprepare: function () {
             console.debug("ari_incoming - oneditprepare START");
-
+            let node = this;
             // Charger la liste d'applications au démarrage
-            updateAppList();
+            updateAppList(node);
 
             // Mettre à jour la liste quand on change de serveur
             $("#node-input-server").on("change", function () {
-                updateAppList();
+                updateAppList(node);
             });
 
             
@@ -459,13 +494,14 @@
         palletteLabel: "Originate",
         oneditprepare: function () {
             console.debug("ari_originate - oneditprepare START");
+            let node = this;
 
             // Charger la liste d'applications au démarrage
-            updateAppList();
+            updateAppList(node);
 
             // Mettre à jour la liste quand on change de serveur
             $("#node-input-server").on("change", function () {
-                updateAppList();
+                updateAppList(node);
             });
 
             
@@ -474,8 +510,15 @@
             $('#node-input-topics').val(selectedValues);
         },
         oneditsave: function () {
+            let appName = $("#node-input-app_name").val();
+            console.log(`🔍 oneditsave - app_name récupéré : ${appName}`);
+            
+            if (!appName) {
+                console.warn("⚠️ Aucune valeur sélectionnée pour app_name !");
+            }
             // Sauvegarder les valeurs sélectionnées
             this.app_name = $("#node-input-app_name").val();
+            console.log(`oneditsave app_name : ${this.app_name}`);
             this.topics = $('#node-input-topics').val() || [];
         }
     });
