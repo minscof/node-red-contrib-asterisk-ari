@@ -1,6 +1,6 @@
 {
   "name": "@minscof/node-red-contrib-asterisk-ari",
-  "version": "2025.1.2",
+  "version": "2025.1.3",
   "description": "Package for Controlling Asterisk via ARI",
   "homepage": "https://github.com/minscof/node-red-contrib-asterisk-ari/",
   "bugs": {
@@ -24,7 +24,7 @@
   "author": "Minscof",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/minscof/node-red-contrib-asterisk-ari"
+    "url": "git+https://github.com/minscof/node-red-contrib-asterisk-ari.git"
   },
   "license": "MIT",
   "node-red": {
@@ -37,6 +37,7 @@
       "ari_playback": "nodes/ari_playback.js",
       "ari_hangup": "nodes/ari_hangup.js",
       "ari_continueindialplan": "nodes/ari_continueindialplan.js",
+      "ari_dtmf_listen": "nodes/ari_dtmf_listen.js",
       "server": "server.js"
     }
   },

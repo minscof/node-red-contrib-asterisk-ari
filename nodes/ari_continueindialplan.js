@@ -6,7 +6,10 @@ module.exports = function (RED) {
     function ari_continueindialplan(n) {
         RED.nodes.createNode(this, n);
         const node = this;
-
+        node.type = 'continueindialplan';
+        node.name = n.name || node.type;
+        node.status({});
+        
         node.on('input', async function (msg, send, done) {
             node.status({ fill: "blue", shape: "dot" });
             try {
@@ -19,15 +22,15 @@ module.exports = function (RED) {
                     return;
                 }
 
-                console.debug("ari_continueindialplan - continueInDialplan start");
+                console.debug("Continueindialplan - continueInDialplan start");
                 await connection.channels.continueInDialplan({ channelId: msg.channelId });
-                console.debug("ari_continueindialplan - continueInDialplan done");
-                msg.payload = `continue in dialplan - end application : ${node.application}`;
+                console.debug("Continueindialplan - continueInDialplan done");
+                msg.payload = `continue in dialplan - end application: ${node.application}`;
                 send(msg); // Use the provided 'send'
                 node.status({});
                 done(); // Signal that processing is complete
             } catch (err) {
-                console.error("ari_continueindialplan - continueInDialplan error:", err);
+                console.error("Continueindialplan - continueInDialplan error:", err);
                 node.error(err);
                 node.status({ fill: "red", shape: "dot", text: err });
                 done(err); // Signal error
@@ -42,4 +45,4 @@ module.exports = function (RED) {
         });
     }
     RED.nodes.registerType("ari_continueindialplan", ari_continueindialplan);
-};
+}

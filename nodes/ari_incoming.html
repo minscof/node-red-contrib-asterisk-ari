@@ -721,3 +721,36 @@
 </script>
 
 <!-- ari_originate section  end                                                -->
+
+
+<script type="text/javascript">
+    RED.nodes.registerType('ari_dtmf_listen', {
+        category: 'asterisk',
+        color: '#66ff66',
+        icon: 'font-awesome/fa-asterisk',
+        defaults: {
+            name: { value: "Dtmf_listen" }
+        },
+        inputs: 1,
+        outputs: 1,
+        outputLabels: ["dtmf"],
+        label: function () {
+            return this.name || "Dtmf_listen";
+        },
+        palletteLabel: "Dtmf_listen"
+    });
+</script>
+
+<script type="text/html" data-template-name="ari_dtmf_listen">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<!-- Next, some simple help text is provided for the node.                   -->
+<script type="text/html" data-help-name="ari_dtmf_listen">
+    <p> Dtmf received</p>
+ </script>
+
+ <!-- ari_dtmf_listen section  end                                                -->

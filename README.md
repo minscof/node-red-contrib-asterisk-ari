@@ -11,6 +11,8 @@ It allows to use Stasis application and theses functions :
 - playback
 - hangup
 - originate
+- dtmf listen
+- bridgedial : receive a call then dial to connect caller
   
 It uses Rest api from Asterisk : ari
 

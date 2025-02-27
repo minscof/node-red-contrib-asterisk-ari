@@ -1,4 +1,4 @@
-name: Publish Package to NPM, Github and Node Red
+name: Publish Package to NPM, Node Red and Github
 
 on:
   release:
@@ -36,6 +36,13 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       
+      - name: Update Node-Red flow-library
+        if: contains(steps.package-version.outputs.current-version, 'dev') != true
+        uses: Zehir/update-package-node-red-flow-library-action@v1.0.5
+        continue-on-error: true
+        with:
+          package-name: '@minscof/node-red-contrib-asterisk-ari'
+
       - name: Authenticate with GitHub Packages
         run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
         env:
@@ -45,10 +52,3 @@ jobs:
         run: npm publish --registry=https://npm.pkg.github.com/
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Update Node-Red flow-library
-        if: contains(steps.package-version.outputs.current-version, 'dev') != true
-        uses: Zehir/update-package-node-red-flow-library-action@v1.0.5
-        continue-on-error: true
-        with:
-          package-name: '@minscof/node-red-contrib-asterisk-ari'

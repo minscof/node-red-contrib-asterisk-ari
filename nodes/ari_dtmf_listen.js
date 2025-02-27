@@ -4,32 +4,35 @@ const { handleChannelEvent, handleEvent } = require("../lib/helpers");
 module.exports = function (RED) {
     "use strict";
 
-    function ari_answer(n) {
+    function ari_dtmf_listen(n) {
         RED.nodes.createNode(this, n);
         const node = this;
-        node.type = 'answer';
+        node.type = 'dtmf_listen';
         node.name = n.name || node.type;
         node.status({});
 
         node.on('input', async function (msg) {
-            node.status({ fill: "blue", shape: "dot" });
+            node.status({ fill: "blue", shape: "dot", text: "waiting dtmf_listen" });
             try {
                 const channel = connectionPool.getchan(msg.payload.channel.id);
                 if (!channel) {
-                    const err = `Answer: channel ${msg.payload.channel.id} not found, maybe hangup`;
+                    const err = `dtmf_listen: channel ${msg.payload.channel.id} not found, maybe hangup`;
                     node.error(err);
                     node.status({});
                     return;
                 }
-                console.debug(`Answer channel: ${channel.id}`);
-                await channel.answer();
-                console.debug(`✅ Call answered channel id: ${channel.id}`);
-                msg.event = 'Answered';
-                node.send(msg);
-                node.status({});
-                console.debug(`Answer ended`);
+                console.debug(`dtmf_listen channel: ${channel.id}`);
+                channel.on('ChannelDtmfReceived', event => {
+                    console.log(`ChannelDtmfReceived digit ${event.digit} :`, event.channel.id);
+                    msg.event = 'ChannelDtmfReceived';
+                    msg.digit = event.digit
+                    node.send(msg);
+                    node.status({});
+                });
+                
+                console.debug(`dtmf_listen ended`);
             } catch (err) {
-                console.error(`Answer channel: ${channel.id}`,err);
+                console.error(`dtmf_listen channel: ${channel.id}`,err);
                 node.error(err);
                 node.status({});
             }
@@ -41,5 +44,5 @@ module.exports = function (RED) {
             // eg: node.cliant.disconnect();
         });
     }
-    RED.nodes.registerType("ari_answer", ari_answer);
+    RED.nodes.registerType("ari_dtmf_listen", ari_dtmf_listen);
 }

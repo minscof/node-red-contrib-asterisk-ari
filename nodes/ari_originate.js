@@ -1,5 +1,4 @@
-const { connectionPool } = require("../lib/ari-client");
-const { handleStasisStartEvent, handleStasisEndEvent, handleChannelEvent, handleEvent } = require("../lib/helpers");
+const { initializeConnection } = require("../lib/helpers");
 
 module.exports = function (RED) {
     "use strict";
@@ -7,46 +6,17 @@ module.exports = function (RED) {
     function ari_originate(n) {
         RED.nodes.createNode(this, n);
         const node = this;
+        node.type = 'originate';
+        node.name = n.name || node.type;
         node.connected = false;
         node.server = RED.nodes.getNode(n.server);
+        node.apps = node.server.apps.split(',');
+        node.app = n.app;
+        node.topics = n.topics;
         node.destination = n.destination;
         node.callerId = n.callerId;
-
-        async function initializeConnection() {
-            if (node.server && node.server.credentials && node.server.apps) {
-                const apps = node.server.apps.split(',');
-                console.debug(`ari_originate url = ${node.server.credentials.url} app: ${n.app} apps: `, apps);
-                const setcon_promise_originate = connectionPool.setconn(node.server.credentials.url, node.server.credentials.username, node.server.credentials.password, n.app, apps, n.topics, node);
-                console.debug(`ari_originate ${n.name} app: ${n.app} initializing...`);
-                try {
-                    const connection = await setcon_promise_originate;
-                    console.debug(`__________promise originate success app: ${n.app}`);
-                    node.status({ fill: "green", shape: "dot", text: "connected" });
-                    connection.on('StasisStart', event => handleStasisStartEvent(node, n.app, event, 'StasisStart', event.channel.id));
-
-                    connection.on('StasisEnd', event => handleStasisEndEvent(node, n.app, event, 'StasisEnd', event.channel.id));
-
-                    connection.on('ChannelDestroyed', event => handleChannelEvent(node, event, 'ChannelDestroyed', event.channel.id));
-                    connection.on('ChannelHangupRequest', event => handleChannelEvent(node, event, 'ChannelHangupRequest', event.channel.id));
-                    connection.on('ChannelDialplan', event => handleChannelEvent(node, event, 'ChannelDialplan', event.channel.id));
-                    connection.on('Dial', event => handleEvent(node, event, 'Dial'));
-
-                    return connection;
-                } catch (err) {
-                    console.error(`__________promise originate failed ${err}`);
-                    node.error(err);
-                    node.status({ fill: "red", shape: "dot", text: "error" });
-                    return null;
-                }
-            } else {
-                console.debug(`ari_originate : config node undefined `);
-                node.error(`config node undefined`);
-                node.status({ fill: "red", shape: "dot", text: "config undefined" });
-                return null;
-            }
-        }
-
-        const connectionPromise = initializeConnection();
+        
+        const connectionPromise = initializeConnection(node);
 
         node.on('input', async function (msg) {
             node.status({ fill: "blue", shape: "dot" });
@@ -75,7 +45,7 @@ module.exports = function (RED) {
                 console.log("📞 Trying to call...");
                 await channel.originate({
                     endpoint: destination,
-                    app: n.app,
+                    app: node.app,
                     callerId: node.callerId
                 });
 
