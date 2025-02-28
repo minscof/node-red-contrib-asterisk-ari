@@ -1,5 +1,5 @@
 const { connectionPool } = require("../lib/ari-client");
-const { handleStasisStartEvent, handleStasisEndEvent, handleChannelEvent, handleEvent } = require("../lib/helpers");
+const { handleEvent } = require("../lib/helpers");
 
 module.exports = function (RED) {
     "use strict";
@@ -11,6 +11,11 @@ module.exports = function (RED) {
         this.callerId = n.callerId;
         node.on('input', async function (msg) {
             node.status({ fill: "blue", shape: "dot" });
+            node.app = msg.app;
+            node.topics = [
+                "StasisStart",
+                "StasisEnd"
+            ];
             console.debug(`originate static output endpoint (node)  = ${n.destination} `)
             const destination = msg.payload.destination ?? n.destination;
             console.debug(`originate call endpoint = ${destination} `);
@@ -89,15 +94,15 @@ module.exports = function (RED) {
             });
 
             // Listen for specific events
-            connection.on('StasisStart', event => handleStasisStartEvent(node, msg.app, event, 'StasisStart', event.channel.id));
-            connection.on('StasisEnd', event => handleStasisEndEvent(node, n.app, event, 'StasisEnd', event.channel.id));
+            connection.on('StasisStart', event => handleEvent(node, event));
+            connection.on('StasisEnd', event => handleEvent(node, event));
             
-            connection.on('ChannelDestroyed', event => handleChannelEvent(node, event, 'ChannelDestroyed', event.channel.id));
-            connection.on('ChannelHangupRequest', event => handleChannelEvent(node, event, 'ChannelHangupRequest', event.channel.id));
-            connection.on('ChannelDialplan', event => handleChannelEvent(node, event, 'ChannelDialplan', event.channel.id));
-            connection.on('Dial', event => handleEvent(node, event, 'Dial'));
-            connection.on('BridgeDestroyed', event => handleEvent(node, event, 'BridgeDestroyed'));
-            connection.on('PeerStatusChange', event => handleEvent(node, event, 'PeerStatusChange'));
+            connection.on('ChannelDestroyed', event => handleEvent(node, event));
+            connection.on('ChannelHangupRequest', event => handleEvent(node, event));
+            connection.on('ChannelDialplan', event => handleEvent(node, event));
+            connection.on('Dial', event => handleEvent(node, event));
+            connection.on('BridgeDestroyed', event => handleEvent(node, event));
+            connection.on('PeerStatusChange', event => handleEvent(node, event));
 
 /*
 

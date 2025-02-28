@@ -6,7 +6,6 @@ module.exports = function (RED) {
     function ari_originate(n) {
         RED.nodes.createNode(this, n);
         const node = this;
-        node.type = 'originate';
         node.name = n.name || node.type;
         node.connected = false;
         node.server = RED.nodes.getNode(n.server);
@@ -35,6 +34,7 @@ module.exports = function (RED) {
                     node.status({ fill: "red", shape: "dot", text: "connection failed" });
                     return;
                 }
+
                 const channel = connection.Channel();
                 if(!channel){
                     node.error("No channel available");

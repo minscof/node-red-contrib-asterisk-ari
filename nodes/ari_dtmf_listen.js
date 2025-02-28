@@ -1,5 +1,4 @@
 const { connectionPool } = require("../lib/ari-client");
-const { handleChannelEvent, handleEvent } = require("../lib/helpers");
 
 module.exports = function (RED) {
     "use strict";
@@ -7,16 +6,16 @@ module.exports = function (RED) {
     function ari_dtmf_listen(n) {
         RED.nodes.createNode(this, n);
         const node = this;
-        node.type = 'dtmf_listen';
         node.name = n.name || node.type;
         node.status({});
 
         node.on('input', async function (msg) {
-            node.status({ fill: "blue", shape: "dot", text: "waiting dtmf_listen" });
             try {
-                const channel = connectionPool.getchan(msg.payload.channel.id);
+                node.status({ fill: "blue", shape: "dot", text: "waiting dtmf_listen" });
+                node.app = msg.app;
+                const channel = connectionPool.getchan(msg.channelId);
                 if (!channel) {
-                    const err = `dtmf_listen: channel ${msg.payload.channel.id} not found, maybe hangup`;
+                    const err = `dtmf_listen: channel ${msg.channelId} not found, maybe hangup`;
                     node.error(err);
                     node.status({});
                     return;
@@ -30,9 +29,9 @@ module.exports = function (RED) {
                     node.status({});
                 });
                 
-                console.debug(`dtmf_listen ended`);
+                console.debug(`dtmf_listen listening...`);
             } catch (err) {
-                console.error(`dtmf_listen channel: ${channel.id}`,err);
+                console.error(`dtmf_listen channel: ${msg.channelId}`,err);
                 node.error(err);
                 node.status({});
             }

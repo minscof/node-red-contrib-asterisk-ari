@@ -1,5 +1,12 @@
 [
     {
+        "id": "b283eef3.e91d1",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
         "id": "b6bd7bc.6bc6d88",
         "type": "comment",
         "z": "b283eef3.e91d1",
@@ -10,31 +17,11 @@
         "wires": []
     },
     {
-        "id": "6007ce32c3f25414",
-        "type": "ari_incoming",
-        "z": "b283eef3.e91d1",
-        "name": "ARI Incoming",
-        "server": "f8d9ef1673cd981b",
-        "app": "application",
-        "topics": [
-            "StasisStart",
-            "StasisEnd"
-        ],
-        "x": 140,
-        "y": 260,
-        "wires": [
-            [
-                "56b935fd82924cb5"
-            ],
-            []
-        ]
-    },
-    {
         "id": "5614748551709b10",
         "type": "ari_answer",
         "z": "b283eef3.e91d1",
         "name": "ARI Answer",
-        "x": 730,
+        "x": 630,
         "y": 260,
         "wires": [
             [
@@ -47,7 +34,7 @@
         "type": "ari_continueindialplan",
         "z": "b283eef3.e91d1",
         "name": "",
-        "x": 730,
+        "x": 650,
         "y": 200,
         "wires": [
             [
@@ -67,7 +54,7 @@
         "complete": "false",
         "statusVal": "",
         "statusType": "auto",
-        "x": 1180,
+        "x": 1100,
         "y": 200,
         "wires": []
     },
@@ -76,9 +63,11 @@
         "type": "ari_hangup",
         "z": "b283eef3.e91d1",
         "name": "",
-        "x": 1290,
+        "x": 1180,
         "y": 260,
-        "wires": []
+        "wires": [
+            []
+        ]
     },
     {
         "id": "56b935fd82924cb5",
@@ -97,7 +86,7 @@
         "checkall": "true",
         "repair": false,
         "outputs": 1,
-        "x": 350,
+        "x": 310,
         "y": 260,
         "wires": [
             [
@@ -123,7 +112,7 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 530,
+        "x": 470,
         "y": 200,
         "wires": [
             [
@@ -148,7 +137,7 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 910,
+        "x": 830,
         "y": 260,
         "wires": [
             [
@@ -173,7 +162,7 @@
         "drop": false,
         "allowrate": false,
         "outputs": 1,
-        "x": 530,
+        "x": 470,
         "y": 260,
         "wires": [
             [
@@ -188,12 +177,13 @@
         "name": "",
         "media2": "sound:tt-weasels",
         "media2Type": "str",
-        "x": 1100,
+        "x": 1000,
         "y": 260,
         "wires": [
             [
                 "d296abd330a7ea06"
-            ]
+            ],
+            []
         ]
     },
     {
@@ -209,7 +199,7 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 730,
+        "x": 690,
         "y": 320,
         "wires": []
     },
@@ -225,7 +215,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 540,
+        "x": 480,
         "y": 320,
         "wires": [
             [
@@ -238,11 +228,9 @@
         "type": "ari_bridgedial",
         "z": "b283eef3.e91d1",
         "name": "",
-        "destination": "",
-        "connected_event": false,
-        "ended_event": false,
-        "dtmf_event": false,
-        "x": 930,
+        "destination": "toto",
+        "callerId": "",
+        "x": 850,
         "y": 200,
         "wires": [
             [
@@ -252,7 +240,99 @@
         ]
     },
     {
+        "id": "637783170de26f60",
+        "type": "ari_listener",
+        "z": "b283eef3.e91d1",
+        "name": "Listener",
+        "server": "f8d9ef1673cd981b",
+        "app": "attendant",
+        "topics": [
+            "StasisStart",
+            "StasisEnd",
+            "ContactStatusChange",
+            "DeviceStateChanged",
+            "EndpointStateChange",
+            "Dial",
+            "ChannelConnectedLine",
+            "ChannelHangupRequest",
+            "ApplicationMoveFailed",
+            "ApplicationReplaced",
+            "ChannelCreated",
+            "ChannelDestroyed",
+            "ChannelEnteredBridge",
+            "ChannelLeftBridge",
+            "ChannelStateChange",
+            "ChannelDtmfReceived",
+            "ChannelDialplan",
+            "ChannelCallerId",
+            "ChannelUserevent",
+            "ChannelVarset",
+            "ChannelToneDetected",
+            "ChannelTalkingStarted",
+            "ChannelTalkingFinished",
+            "ChannelHold",
+            "ChannelUnhold",
+            "PeerStatusChange"
+        ],
+        "x": 140,
+        "y": 260,
+        "wires": [
+            [
+                "56b935fd82924cb5"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "0135b2834ddba965",
+        "type": "ari_originate",
+        "z": "b283eef3.e91d1",
+        "name": "Originate",
+        "server": "f8d9ef1673cd981b",
+        "app": "originate",
+        "topics": [
+            "StasisStart",
+            "StasisEnd",
+            "ContactStatusChange",
+            "DeviceStateChanged",
+            "EndpointStateChange",
+            "Dial",
+            "ChannelConnectedLine",
+            "ChannelHangupRequest",
+            "ApplicationMoveFailed",
+            "ApplicationReplaced",
+            "ChannelCreated",
+            "ChannelDestroyed",
+            "ChannelEnteredBridge",
+            "ChannelLeftBridge",
+            "ChannelStateChange",
+            "ChannelDtmfReceived",
+            "ChannelDialplan",
+            "ChannelCallerId",
+            "ChannelUserevent",
+            "ChannelVarset",
+            "ChannelToneDetected",
+            "ChannelTalkingStarted",
+            "ChannelTalkingFinished",
+            "ChannelHold",
+            "ChannelUnhold",
+            "PeerStatusChange"
+        ],
+        "destination": "",
+        "callerId": "",
+        "x": 140,
+        "y": 200,
+        "wires": [
+            [
+                "941dedf6b4b8d1f3"
+            ],
+            []
+        ]
+    },
+    {
         "id": "f8d9ef1673cd981b",
-        "type": "asterisk_ari"
+        "type": "asterisk_ari",
+        "url": "http://localhost:8088",
+        "apps": "attendant,originate"
     }
 ]

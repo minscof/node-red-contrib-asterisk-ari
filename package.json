@@ -1,6 +1,6 @@
 {
   "name": "@minscof/node-red-contrib-asterisk-ari",
-  "version": "2025.1.3",
+  "version": "2025.1.4",
   "description": "Package for Controlling Asterisk via ARI",
   "homepage": "https://github.com/minscof/node-red-contrib-asterisk-ari/",
   "bugs": {
@@ -30,7 +30,8 @@
   "node-red": {
     "version": ">=3.1.1",
     "nodes": {
-      "ari_incoming": "nodes/ari_incoming.js",
+      "main": "main.js",
+      "ari_listener": "nodes/ari_listener.js",
       "ari_originate": "nodes/ari_originate.js",
       "ari_answer": "nodes/ari_answer.js",
       "ari_bridgedial": "nodes/ari_bridgedial.js",

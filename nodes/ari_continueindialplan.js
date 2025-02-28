@@ -6,12 +6,12 @@ module.exports = function (RED) {
     function ari_continueindialplan(n) {
         RED.nodes.createNode(this, n);
         const node = this;
-        node.type = 'continueindialplan';
         node.name = n.name || node.type;
         node.status({});
         
         node.on('input', async function (msg, send, done) {
             node.status({ fill: "blue", shape: "dot" });
+            node.app = msg.app;
             try {
                 const connection = connectionPool.getconn(msg.asteriskId);
                 if (!connection) {
