@@ -44,7 +44,7 @@
     }
   },
   "dependencies": {
-    "@ipcom/asterisk-ari": "^0.0.158"
+    "@ipcom/asterisk-ari": "^0.0.159"
   },
   "resolutions": {}
 }
