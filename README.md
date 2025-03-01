@@ -98,7 +98,7 @@ output example application node, event StasisStart
 ```
 
 ## Limitation
-Can not yet launch call, only receive call
+Can not send dtmf or record a call
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.

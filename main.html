@@ -5,48 +5,49 @@
 </script>
 
 <script type="text/javascript">
+    // Function to update the application dropdown list
     function updateAppList(node) {
         let dropdown = $("#node-input-app");
-        dropdown.empty(); // On vide la liste avant de la remplir
+        dropdown.empty(); // Clear the list before populating
         console.log("updateAppList START app:", node.app);
 
 
-        let serverId = $("#node-input-server").val(); // ID du serveur sélectionné
+        let serverId = $("#node-input-server").val(); // ID of the selected server
         if (!serverId) return;
 
-        let serverConfig = RED.nodes.node(serverId); // Récupérer le nœud serveur
+        let serverConfig = RED.nodes.node(serverId); // Get the server node
         //console.debug("🔍 serverConfig récupéré :", serverConfig);
 
         if (serverConfig && serverConfig.apps) {
             let apps = serverConfig.apps.split(",");
-            console.debug("📜 Liste des applications :", apps);
+            console.debug("📜 List of applications :", apps);
 
             apps.forEach(app => {
                 dropdown.append(new Option(app, app));
             });
 
-            // 🔄 Attendre la mise à jour complète avant de restaurer la valeur sélectionnée
+            // 🔄 Wait for the list to be updated before restoring the selected value
             setTimeout(() => {
                 if (node.app && dropdown.find(`option[value="${node.app}"]`).length > 0) {
                     dropdown.val(node.app);
                 } else {
                     dropdown.val($("#node-input-app option:first").val());
                 }
-                console.debug("✔️ Valeur sélectionnée après mise à jour :", dropdown.val());
+                console.debug("✔️ Selected value after update :", dropdown.val());
             }, 50); // Petit délai pour laisser le DOM se mettre à jour
         } else {
-            console.warn("⚠️ Aucun serveur sélectionné ou liste d'applications vide !");
+            console.warn("⚠️ No server selected or empty application list !");
         }
     }
 
-    // Function to populate the <select>
+    // Function to populate the topics <select>
     function populateTopicsSelect(node) {
         /*
         $.getScript('resources/topics.js', function() {
             console.log("topics.js loaded");
         });
         */
-       //const availableTopics = ['StasisStart', 'StasisEnd'];
+        //const availableTopics = ['StasisStart', 'StasisEnd'];
         console.debug(`debug populateTopicsSelect`);
 
         const select = $("#node-input-topics");
@@ -57,12 +58,12 @@
         });
 
         // Restore previously selected values or defaults values
-        select.val(node.topics || defaultTopicsNodeType[node.type]);  
+        select.val(node.topics || defaultTopicsNodeType[node.type]);
     }
 
 </script>
 
-<script type="text/javascript">   
+<script type="text/javascript">
     RED.nodes.registerType('ari_listener', {
         category: 'asterisk',
         color: '#989898',
@@ -75,7 +76,7 @@
         },
         inputs: 1,
         outputs: 2,
-        outputLabels: ["starting", "event"],
+        outputLabels: ["start", "event"],
         label: function () {
             return this.name || "Application";
         },
@@ -83,12 +84,12 @@
 
         oneditprepare: function () {
             // Call this function when preparing the editor
-            
+
             let node = this;
-            // Charger la liste d'applications au démarrage
+            // Load the application list at startup
             updateAppList(node);
 
-            // Mettre à jour la liste quand on change de serveur
+            // Update the list when the server changes
             $("#node-input-server").on("change", function () {
                 updateAppList(node);
             });
@@ -98,7 +99,7 @@
 
         },
         oneditsave: function () {
-            // Sauvegarder les valeurs sélectionnées
+            // Save the selected values
             this.app = $("#node-input-app").val();
             this.topics = $('#node-input-topics').val() || defaultTopicsNodeType[this.type];
         }
@@ -132,8 +133,11 @@
 <!-- data-help-name identifies the node type this help is for             -->
 <!-- This content appears in the Info sidebar when a node is selected     -->
 <!-- The first <p> is used as the pop-up tool tip when hovering over a    -->
-<!-- node in the palette.                                                 -->
-<p>This Node-RED node listens for all events from an Asterisk Stasis application and emits messages accordingly.</p>
+<!-- node in the palette. 
+                                                                           -->
+<p>Listener</p>
+<p>This Node-RED node listens to configured events (topics) from an Asterisk Stasis application and emits messages
+    accordingly.</p>
 
 <p>event values
 <ul>
@@ -147,12 +151,13 @@
 
 <h3>Outputs</h3>
 <dl class="message-properties">
-    <dt>starting</dt>
+    <dt>start</dt>
     <dd>
         <p>Output an object called <b>msg</b> when the stasis application starts.
             msg is composed of
         <ul>
             <li><b>event</b> name (string), </li>
+            <li><b>app</b> name (string), </li>
             <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
             <li><b>channelId</b> identifier of channel (string) - optional</li>
             <li><b>payload</b> event (object)</li>
@@ -162,10 +167,11 @@
     </dd>
     <dt>event</dt>
     <dd>
-        <p>Output an object called <b>msg</b> each time the stasis application receives and event.
+        <p>Output an object called <b>msg</b> each time the stasis application receives events.
             msg is composed of
         <ul>
             <li><b>event</b> name (string), </li>
+            <li><b>app</b> name (string), </li>
             <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
             <li><b>channelId</b> identifier of channel (string) - optional</li>
             <li><b>payload</b> event (object)</li>
@@ -189,8 +195,8 @@
         <span class="property-type">string</span>
     </dt>
     <dd>
-        The name of the stasis application to register. 
-        Default: <code>TestApp</code>.
+        The name of the stasis application to register.
+        Stasis applications are configured in the Asterisk config node.
     </dd>
 
     <dt>Asterisk server
@@ -258,7 +264,7 @@
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
     <div class="form-row">
-        <label for="node-input-media2"><i class="fa fa-tag"></i>Or media in var</label>
+        <label for="node-input-media2"><i class="fa fa-tag"></i>Media</label>
         <input type="text" id="node-input-media2" style="width:70%" placeholder="sound:weasels-eaten-phonesys">
         <input type="hidden" id="node-input-media2Type">
     </div>
@@ -270,8 +276,82 @@
 <!-- This content appears in the Info sidebar when a node is selected     -->
 <!-- The first <p> is used as the pop-up tool tip when hovering over a    -->
 <!-- node in the palette.                                                 -->
-<p>Input and output node. Just sends a sound message when it starts up.
+<p>Playback</p>
+<p>Input and output node.</p>
+<p>
+    Plays a sound message. The sound message must be configured in the node or provided in the input message.
+    ex : sound:tt-weasels
+    The sound file must be present on the asterisk server.
 </p>
+
+<h3>Input</h3>
+<dl class="message-properties">
+    <dt>1</dt>
+    <dd>
+        <p>Input an <b>msg</b> composed of
+        <ul>
+            <li><b>event</b> name (string), </li>
+            <li><b>app</b> name (string), </li>
+            <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
+            <li><b>channelId</b> identifier of channel (string) - optional</li>
+            <li><b>payload</b> event (object)</li>
+            <li><b>_msgid</b> (string).</li>
+        </ul>
+        </p>
+    </dd>
+</dl>
+
+<h3>Outputs</h3>
+<dl class="message-properties">
+    <dt>end</dt>
+    <dd>
+        <p>Output an object called <b>msg</b> when the playback is finished
+            msg is composed of
+        <ul>
+            <li><b>event</b> name (string), </li>
+            <li><b>app</b> name (string), </li>
+            <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
+            <li><b>channelId</b> identifier of channel (string) - optional</li>
+            <li><b>payload</b> event (object)</li>
+            <li><b>_msgid</b> (string).</li>
+        </ul>
+        </p>
+    </dd>
+    <dt>event</dt>
+    <dd>
+        <p>Output an object called <b>msg</b> when the playback starts and finishs.
+            msg is composed of
+        <ul>
+            <li><b>event</b> name (string), </li>
+            <li><b>app</b> name (string), </li>
+            <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
+            <li><b>channelId</b> identifier of channel (string) - optional</li>
+            <li><b>payload</b> event (object)</li>
+            <li><b>_msgid</b> (string).</li>
+        </ul>
+        </p>
+
+    </dd>
+</dl>
+
+<h3>Configuration</h3>
+<dl class="message-properties">
+    <dt>media</dt>
+    <dd>
+        <p>Node is configured to determine how getting the name of the sound file (media) to play
+        <ul>
+            <li><b>string</b> name of the sound file ex sound:tt-weasels (string), </li>
+            <li><b>flow</b> use a flow variable to get name of the sound file, ex media (string) -> flow.get("media"),
+            </li>
+            <li><b>global</b> use a global variable to get name of the sound file, ex media (string) ->
+                global.get("media"),</li>
+            <li><b>msg</b> use the input msg to get name of the sound file, ex payload.media (string) ->
+                msg.payload.media,</li>
+        </ul>
+        </p>
+    </dd>
+
+</dl>
 </script>
 
 <script type="text/javascript">
@@ -302,6 +382,47 @@
 <!-- Next, some simple help text is provided for the node.                   -->
 <script type="text/html" data-help-name="ari_hangup">
     <p> Hangup The Channel</p>
+    <p>Input and output node.</p>
+    <p>
+    
+    </p>
+
+    <h3>Input</h3>
+    <dl class="message-properties">
+        <dt>1</dt>
+        <dd>
+            <p>Input an  <b>msg</b>  composed of
+            <ul>
+                <li><b>event</b> name (string), </li>
+                <li><b>app</b> name (string), </li>
+                <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
+                <li><b>channelId</b> identifier of channel (string) - optional</li>
+                <li><b>payload</b> event (object)</li>
+                <li><b>_msgid</b> (string).</li>
+            </ul>
+            </p>
+        </dd>
+    </dl>
+
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>end</dt>
+        <dd>
+            <p>Output an object called <b>msg</b> when the hangup is processed
+                msg is composed of
+            <ul>
+                <li><b>event</b> name (string), </li>
+                <li><b>app</b> name (string), </li>
+                <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
+                <li><b>channelId</b> identifier of channel (string) - optional</li>
+                <li><b>payload</b> event (object)</li>
+                <li><b>_msgid</b> (string).</li>
+            </ul>
+            </p>
+        </dd>
+        
+    </dl>
+
  </script>
 
 <!-- ari_answer section  start                                                -->
@@ -329,6 +450,52 @@
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
 </script>
+
+<!-- Next, some simple help text is provided for the node.                   -->
+<script type="text/html" data-help-name="ari_answer">
+    <p> Answer the Channel</p>
+    <p>Input and output node.</p>
+    <p>
+    
+    </p>
+
+    <h3>Input</h3>
+    <dl class="message-properties">
+        <dt>1</dt>
+        <dd>
+            <p>Input an  <b>msg</b>  composed of
+            <ul>
+                <li><b>event</b> name (string), </li>
+                <li><b>app</b> name (string), </li>
+                <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
+                <li><b>channelId</b> identifier of channel (string) - optional</li>
+                <li><b>payload</b> event (object)</li>
+                <li><b>_msgid</b> (string).</li>
+            </ul>
+            </p>
+        </dd>
+    </dl>
+
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>end</dt>
+        <dd>
+            <p>Output an object called <b>msg</b> when the answer is processed
+                msg is composed of
+            <ul>
+                <li><b>event</b> name (string), </li>
+                <li><b>app</b> name (string), </li>
+                <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
+                <li><b>channelId</b> identifier of channel (string) - optional</li>
+                <li><b>payload</b> event (object)</li>
+                <li><b>_msgid</b> (string).</li>
+            </ul>
+            </p>
+        </dd>
+        
+    </dl>
+
+ </script>
 <!-- ari_answer section  end                                                -->
 
 <!-- ari_continueindialplan section  start                                                -->
@@ -356,6 +523,52 @@
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
 </script>
+
+<!-- Next, some simple help text is provided for the node.                   -->
+<script type="text/html" data-help-name="ari_continueindialplan">
+    <p>Return to dialplan without closing the channel</p>
+    <p>Input and output node.</p>
+    <p>
+        Return to dialplan configured in asterisk server and keep the channel open.
+    </p>
+
+    <h3>Input</h3>
+    <dl class="message-properties">
+        <dt>1</dt>
+        <dd>
+            <p>Input an  <b>msg</b>  composed of
+            <ul>
+                <li><b>event</b> name (string), </li>
+                <li><b>app</b> name (string), </li>
+                <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
+                <li><b>channelId</b> identifier of channel (string) - optional</li>
+                <li><b>payload</b> event (object)</li>
+                <li><b>_msgid</b> (string).</li>
+            </ul>
+            </p>
+        </dd>
+    </dl>
+
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>end</dt>
+        <dd>
+            <p>Output an object called <b>msg</b> when the continue to Dialplan is processed
+                msg is composed of
+            <ul>
+                <li><b>event</b> name (string), </li>
+                <li><b>app</b> name (string), </li>
+                <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
+                <li><b>channelId</b> identifier of channel (string) - optional</li>
+                <li><b>payload</b> event (object)</li>
+                <li><b>_msgid</b> (string).</li>
+            </ul>
+            </p>
+        </dd>
+        
+    </dl>
+
+ </script>
 <!-- ari_continueindialplan section  end                                                -->
 
 <script type="text/javascript">
@@ -394,12 +607,14 @@
     </div>
  </script>
 
- <script type="text/html" data-help-name="ari_bridgedial">
+<script type="text/html" data-help-name="ari_bridgedial">
     <!-- data-help-name identifies the node type this help is for             -->
 <!-- This content appears in the Info sidebar when a node is selected     -->
 <!-- The first <p> is used as the pop-up tool tip when hovering over a    -->
 <!-- node in the palette.                                                 -->
-<p>Connect a caller (active channel) to an endpoint</p>
+<p>Bridge Dial</p>
+<p>Input and output node.</p>
+<p>Connect the caller (active channel) to an endpoint</p>
 <p>Endpoint can be configured in the node settings, or
     overridden by values in the incoming message's request body (payload.destination property : ex PJSIP/1000) </p>
 <p>event values
@@ -424,9 +639,9 @@
 
 <h3>Outputs</h3>
 <dl class="message-properties">
-    <dt>Event</dt>
+    <dt>end</dt>
     <dd>
-        <p>Output an object called <b>msg</b> containing
+        <p>Output an object called <b>msg</b> when the call is done
             <b>msg.payload</b>. msg.payload is composed of
         <ul>
             <li><b>event</b> (string), </li>
@@ -437,7 +652,7 @@
         </ul>
         </p>
     </dd>
-    <dt>Dtmf</dt>
+    <dt>event</dt>
     <dd>
         <p>Output an object called <b>msg</b> containing
             <b>msg.payload</b>. msg.payload is composed of
@@ -447,19 +662,7 @@
         </p>
 
     </dd>
-    <dt>Debug</dt>
-    <dd>
-        <p>Output an object called <b>msg</b> containing
-            <b>msg.payload</b>. msg.payload is composed of
-        <ul>
-            <li><b>event</b> name (string), </li>
-            <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
-            <li><b>channelId</b> identifier of channel (string)  - optional</li>
-            <li><b>payload</b> event (object)</li>
-            <li><b>_msgid</b> (string).</li>
-        </ul>
-        </p>
-    </dd>
+
 </dl>
 
 <h3>Details</h3>
@@ -494,7 +697,7 @@
 <ul>
     <li><strong>Example 1:</strong>
         <ul>
-            
+
         </ul>
     </li>
 </ul>
@@ -502,7 +705,7 @@
 
 </script>
 
- 
+
 <!-- ari_bridgedial section  end                                                -->
 
 <script type="text/javascript">
@@ -529,10 +732,10 @@
             console.debug("ari_originate - oneditprepare START");
             let node = this;
 
-            // Charger la liste d'applications au démarrage
+            // Load the application list at startup
             updateAppList(node);
 
-            // Mettre à jour la liste quand on change de serveur
+            // Update the list when the server changes
             $("#node-input-server").on("change", function () {
                 updateAppList(node);
             });
@@ -543,11 +746,11 @@
         oneditsave: function () {
             let app = $("#node-input-app").val();
             console.log(`🔍 oneditsave - app: ${app}`);
-            
+
             if (!app) {
-                console.warn("⚠️ Aucune valeur sélectionnée pour app !");
+                console.warn("⚠️ No value selected for app !");
             }
-            // Sauvegarder les valeurs sélectionnées
+            // Save the selected values
             this.app = $("#node-input-app").val();
             this.topics = $('#node-input-topics').val() || defaultTopicsNodeType[this.type];
         }
@@ -583,11 +786,13 @@
     </div>
  </script>
 
- <script type="text/html" data-help-name="ari_originate">
+<script type="text/html" data-help-name="ari_originate">
     <!-- data-help-name identifies the node type this help is for             -->
 <!-- This content appears in the Info sidebar when a node is selected     -->
 <!-- The first <p> is used as the pop-up tool tip when hovering over a    -->
 <!-- node in the palette.                                                 -->
+<p>Originate (Call)</p>
+<p>Input and output node.</p>
 <p>Define and registered an ari application, call an endpoint and receive all the events to the application</p>
 <p>Endpoint can be configured in the node settings, or
     overridden by values in the incoming message's request body (payload.destination property : ex PJSIP/1000) </p>
@@ -613,9 +818,9 @@
 
 <h3>Outputs</h3>
 <dl class="message-properties">
-    <dt>Event</dt>
+    <dt>end</dt>
     <dd>
-        <p>Output an object called <b>msg</b> containing
+        <p>Output an object called <b>msg</b> when the call is done
             <b>msg.payload</b>. msg.payload is composed of
         <ul>
             <li><b>event</b> (string), </li>
@@ -626,7 +831,7 @@
         </ul>
         </p>
     </dd>
-    <dt>Dtmf</dt>
+    <dt>event</dt>
     <dd>
         <p>Output an object called <b>msg</b> containing
             <b>msg.payload</b>. msg.payload is composed of
@@ -636,19 +841,7 @@
         </p>
 
     </dd>
-    <dt>Debug</dt>
-    <dd>
-        <p>Output an object called <b>msg</b> containing
-            <b>msg.payload</b>. msg.payload is composed of
-        <ul>
-            <li><b>event</b> name (string), </li>
-            <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
-            <li><b>channelId</b> identifier of channel (string)  - optional</li>
-            <li><b>payload</b> event (object)</li>
-            <li><b>_msgid</b> (string).</li>
-        </ul>
-        </p>
-    </dd>
+
 </dl>
 
 <h3>Details</h3>
@@ -677,15 +870,14 @@
     <dd>
         The id of the Asterisk server to use.
     </dd>
-
 </dl>
 
 <h3>Examples of Use:</h3>
 <ul>
     <li><strong>Example 1:</strong>
         <ul>
-            <li>Configuration: <code>bufferSize=2</code>, <code>flushInterval=5000</code>.</li>
-            <li>Behavior: After receiving two messages,</li>
+            <li>Configuration: <code>?</code>, <code>.</code>.</li>
+            <li>Behavior: After receiving messages,</li>
         </ul>
     </li>
 </ul>
@@ -705,11 +897,14 @@
         color: '#66ff66',
         icon: 'font-awesome/fa-asterisk',
         defaults: {
-            name: { value: "Dtmf_listen" }
+            name: { value: "Dtmf_listen" },
+            codes: { value: "123#,789*" },
+            codeLength : { value: 4 },
+            codeTimeout : { value: 5000 }
         },
         inputs: 1,
-        outputs: 1,
-        outputLabels: ["dtmf"],
+        outputs: 3,
+        outputLabels: ["dtmf","code","end"],
         label: function () {
             return this.name || "Dtmf_listen";
         },
@@ -722,11 +917,123 @@
         <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
+    <div class="form-row">
+        <label for="node-input-codes"><i class="fa fa-tag"></i>PINs</label>
+        <input type="text" id="node-input-codes" placeholder="PINs">
+    </div>
+    <div class="form-row">
+        <label for="node-input-code-length"><i class="fa fa-tag"></i>PIN's length</label>
+        <input type="number" id="node-code-length" placeholder="PIN's length">
+    </div>
+    <div class="form-row">
+        <label for="node-input-code-delay"><i class="fa fa-tag"></i>PIN's delay</label>
+        <input type="number" id="node-code-timeout" placeholder="PIN's delay">
+    </div>
 </script>
 
 <!-- Next, some simple help text is provided for the node.                   -->
 <script type="text/html" data-help-name="ari_dtmf_listen">
     <p> Dtmf received</p>
+    <p>Input and output node.</p>
+    <p>
+        Listen an opened channel, output DTMF digit and verify DTMF PIN entered.
+    </p>
+
+    <h3>Input</h3>
+    <dl class="message-properties">
+        <dt>1</dt>
+        <dd>
+            <p>Input an  <b>msg</b>  composed of
+            <ul>
+                <li><b>event</b> name (string), </li>
+                <li><b>app</b> name (string), </li>
+                <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
+                <li><b>channelId</b> identifier of channel (string) - optional</li>
+                <li><b>payload</b> event (object)</li>
+                <li><b>_msgid</b> (string).</li>
+            </ul>
+            </p>
+        </dd>
+    </dl>
+
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>code</dt>
+        <dd>
+            <p>Output an object called <b>msg</b> when the DTMF PIN entered has been verified
+                msg is composed of
+            <ul>
+                <li><b>code</b> verified DTMF PIN (string), received ex : *49# , </li>
+                <li><b>event</b> name (string), </li>
+                <li><b>app</b> name (string), </li>
+                <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
+                <li><b>channelId</b> identifier of channel (string) - optional</li>
+                <li><b>payload</b> event (object)</li>
+                <li><b>_msgid</b> (string).</li>
+            </ul>
+            </p>
+        </dd>
+        <dt>dtmf</dt>
+        <dd>
+            <p>Output an object called <b>msg</b> when a dtmf message is received
+                msg is composed of
+            <ul>
+                <li><b>digit</b> dtmf received ex : 4 (string), </li>
+                <li><b>event</b> name (string), </li>
+                <li><b>app</b> name (string), </li>
+                <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
+                <li><b>channelId</b> identifier of channel (string) - optional</li>
+                <li><b>payload</b> event (object)</li>
+                <li><b>_msgid</b> (string).</li>
+            </ul>
+            </p>
+        </dd>
+        <dt>end</dt>
+        <dd>
+            <p>Output an object called <b>msg</b> when channel is closed
+                msg is composed of
+            <ul>
+                <li><b>event</b> name (string), </li>
+                <li><b>app</b> name (string), </li>
+                <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
+                <li><b>channelId</b> identifier of channel (string) - optional</li>
+                <li><b>payload</b> event (object)</li>
+                <li><b>_msgid</b> (string).</li>
+            </ul>
+            </p>
+        </dd>
+    </dl>
+    <h3>Node Configuration</h3>
+    <dl class="message-properties">
+        <dt>PINs
+            <span class="property-type">string</span>
+        </dt>
+        <dd>
+            List of DTMF PIN, separated by comma that trigger output ex *86#,7845
+            Default: <code>123#,789*</code>.
+        </dd>
+        <dt>PINs length
+            <span class="property-type">number</span>
+        </dt>
+        <dd>
+            Length of a DTMF PIN
+            Default: <code>4*</code>.
+        </dd>
+        <dt>PINs timeout
+            <span class="property-type">number</span>
+        </dt>
+        <dd>
+            delay in ms between 2 digits
+            Default: <code>5000</code> 5s.
+        </dd>
+
+        <dt>Asterisk server
+            <span class="property-type">object</span>
+        </dt>
+        <dd>
+            The id of the Asterisk server to use.
+        </dd>
+    </dl>
  </script>
 
- <!-- ari_dtmf_listen section  end                                                -->
+<!-- ari_dtmf_listen section  end                                                -->
