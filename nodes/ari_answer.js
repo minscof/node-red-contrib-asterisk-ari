@@ -15,7 +15,7 @@ module.exports = function (RED) {
                 node.app = msg.app;
                 const channel = connectionPool.getchan(msg.channelId);
                 if (!channel) {
-                    const errorMessage = `Answer: channel ${msg.channelId} not found, maybe hangup`;
+                    const errorMessage = `${node.type} channel ${msg.channelId} not found, maybe hangup`;
                     node.error(errorMessage);
                     node.status({ fill: "red", shape: "dot", text: "channel not found" });
                     done(errorMessage);
@@ -23,16 +23,16 @@ module.exports = function (RED) {
                 }
 
                 await channel.answer();
-                console.debug(`Answer channel: ${channel.id} - call answered`);
+                console.debug(`${node.type} channel: ${channel.id} - call answer`);
                 msg.event = 'Answer';
                 send(msg); // Send the message to the next nodes
                 node.status({});
-                done();
+                done(); // Signal that processing is complete
             } catch (err) {
-                console.error(`Answer channel: ${msg.channelId} - Error:`, err);
+                console.error(`${node.type} channel: ${msg.channelId} - Error:`, err);
                 node.error(err);
-                node.status({ fill: "red", shape: "dot", text: "error" });
-                done(err);
+                node.status({ fill: "red", shape: "dot", text: err });
+                done(err); // Signal error
             }
         });
 

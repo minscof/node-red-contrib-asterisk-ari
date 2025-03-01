@@ -6,12 +6,14 @@
 node-red-contrib-asterisk-ari is a module for nodered to manage Asterisk IPBX communications.
 
 It allows to use Stasis application and theses functions :  
-- answer
-- continueInDialPlan
+- listener 
+answer
+- continueInDialplan
 - playback
 - hangup
 - originate
 - dtmf listen
+- dtmf send
 - bridgedial : receive a call then dial to connect caller
   
 It uses Rest api from Asterisk : ari

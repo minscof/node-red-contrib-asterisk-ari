@@ -571,6 +571,7 @@
  </script>
 <!-- ari_continueindialplan section  end                                                -->
 
+<!-- ari_bridgedial section  start                                                      -->
 <script type="text/javascript">
     RED.nodes.registerType('ari_bridgedial', {
         category: 'asterisk',
@@ -579,7 +580,6 @@
         defaults: {
             name: { value: "Bridge Dial" },
             destination: { value: "" },
-            app: { value: "MyApp" },
             callerId: {}
         },
         inputs: 1,
@@ -701,13 +701,10 @@
         </ul>
     </li>
 </ul>
-
-
 </script>
-
-
 <!-- ari_bridgedial section  end                                                -->
 
+<!-- ari_orginate section  start                                                -->
 <script type="text/javascript">
     RED.nodes.registerType('ari_originate', {
         category: 'asterisk',
@@ -788,106 +785,105 @@
 
 <script type="text/html" data-help-name="ari_originate">
     <!-- data-help-name identifies the node type this help is for             -->
-<!-- This content appears in the Info sidebar when a node is selected     -->
-<!-- The first <p> is used as the pop-up tool tip when hovering over a    -->
-<!-- node in the palette.                                                 -->
-<p>Originate (Call)</p>
-<p>Input and output node.</p>
-<p>Define and registered an ari application, call an endpoint and receive all the events to the application</p>
-<p>Endpoint can be configured in the node settings, or
-    overridden by values in the incoming message's request body (payload.destination property : ex PJSIP/1000) </p>
-<p>event values
-<ul>
-    <li>StasisStart,</li>
-    <li>ChannelHangupRequest,</li>
-    <li>StasisEnd,</li>
-    <li>others...</li>
-</ul>
-</p>
+    <!-- This content appears in the Info sidebar when a node is selected     -->
+    <!-- The first <p> is used as the pop-up tool tip when hovering over a    -->
+    <!-- node in the palette.                                                 -->
+    <p>Originate (Call)</p>
+    <p>Input and output node.</p>
+    <p>Define and registered an ari application, call an endpoint and receive all the events to the application</p>
+    <p>Endpoint can be configured in the node settings, or
+        overridden by values in the incoming message's request body (payload.destination property : ex PJSIP/1000) </p>
+    <p>event values
+    <ul>
+        <li>StasisStart,</li>
+        <li>ChannelHangupRequest,</li>
+        <li>StasisEnd,</li>
+        <li>others...</li>
+    </ul>
+    </p>
 
-<h3>Inputs</h3>
-<dl class="message-properties">
-    <dt>payload
-        <span class="property-type">object</span>
-    </dt>
-    <dd>
-        Incoming message's <code>payload</code> can have destination property to define endpoint to call..
-    </dd>
-</dl>
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload
+            <span class="property-type">object</span>
+        </dt>
+        <dd>
+            Incoming message's <code>payload</code> can have destination property to define endpoint to call..
+        </dd>
+    </dl>
 
 
-<h3>Outputs</h3>
-<dl class="message-properties">
-    <dt>end</dt>
-    <dd>
-        <p>Output an object called <b>msg</b> when the call is done
-            <b>msg.payload</b>. msg.payload is composed of
-        <ul>
-            <li><b>event</b> (string), </li>
-            <li><b>channel</b> (object),</li>
-            <li><b>details</b> (object)</li>
-            <li><b>_msgid</b> (string).</li>
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>end</dt>
+        <dd>
+            <p>Output an object called <b>msg</b> when the call is done
+                <b>msg.payload</b>. msg.payload is composed of
+            <ul>
+                <li><b>event</b> (string), </li>
+                <li><b>channel</b> (object),</li>
+                <li><b>details</b> (object)</li>
+                <li><b>_msgid</b> (string).</li>
 
-        </ul>
-        </p>
-    </dd>
-    <dt>event</dt>
-    <dd>
-        <p>Output an object called <b>msg</b> containing
-            <b>msg.payload</b>. msg.payload is composed of
-        <ul>
-            <li><b>event</b> (string), </li>
-        </ul>
-        </p>
+            </ul>
+            </p>
+        </dd>
+        <dt>event</dt>
+        <dd>
+            <p>Output an object called <b>msg</b> containing
+                <b>msg.payload</b>. msg.payload is composed of
+            <ul>
+                <li><b>event</b> (string), </li>
+            </ul>
+            </p>
 
-    </dd>
+        </dd>
 
-</dl>
+    </dl>
 
-<h3>Details</h3>
-<p>
-    to be completed..
-<ul>
-    <li>Each incoming message's ...</li>
-    <li>Once </li>
-    <li>Then </li>
-</ul>
-</p>
+    <h3>Details</h3>
+    <p>
+        to be completed..
+    <ul>
+        <li>Each incoming message's ...</li>
+        <li>Once </li>
+        <li>Then </li>
+    </ul>
+    </p>
 
-<h3>Node Configuration</h3>
-<dl class="message-properties">
-    <dt>application name
-        <span class="property-type">string</span>
-    </dt>
-    <dd>
-        The name of the stasis application to register. This application didn't require to be declared in the dialplan.
-        Default: <code>Originate</code>.
-    </dd>
+    <h3>Node Configuration</h3>
+    <dl class="message-properties">
+        <dt>application name
+            <span class="property-type">string</span>
+        </dt>
+        <dd>
+            The name of the stasis application to register. This application didn't require to be declared in the dialplan.
+            Default: <code>Originate</code>.
+        </dd>
 
-    <dt>Asterisk server
-        <span class="property-type">object</span>
-    </dt>
-    <dd>
-        The id of the Asterisk server to use.
-    </dd>
-</dl>
+        <dt>Asterisk server
+            <span class="property-type">object</span>
+        </dt>
+        <dd>
+            The id of the Asterisk server to use.
+        </dd>
+    </dl>
 
-<h3>Examples of Use:</h3>
-<ul>
-    <li><strong>Example 1:</strong>
-        <ul>
-            <li>Configuration: <code>?</code>, <code>.</code>.</li>
-            <li>Behavior: After receiving messages,</li>
-        </ul>
-    </li>
-</ul>
+    <h3>Examples of Use:</h3>
+    <ul>
+        <li><strong>Example 1:</strong>
+            <ul>
+                <li>Configuration: <code>?</code>, <code>.</code>.</li>
+                <li>Behavior: After receiving messages,</li>
+            </ul>
+        </li>
+    </ul>
 
-<p>
-    This node receives all the events for the stasis application.
-</p>
+    <p>
+        This node receives all the events for the stasis application.
+    </p>
 
 </script>
-
 <!-- ari_originate section  end                                                -->
 
 
@@ -919,15 +915,15 @@
     </div>
     <div class="form-row">
         <label for="node-input-codes"><i class="fa fa-tag"></i>PINs</label>
-        <input type="text" id="node-input-codes" placeholder="PINs">
+        <input type="text" id="node-input-codes" placeholder="123#,789*">
     </div>
     <div class="form-row">
         <label for="node-input-code-length"><i class="fa fa-tag"></i>PIN's length</label>
-        <input type="number" id="node-code-length" placeholder="PIN's length">
+        <input type="number" id="node-code-length" placeholder="4">
     </div>
     <div class="form-row">
         <label for="node-input-code-delay"><i class="fa fa-tag"></i>PIN's delay</label>
-        <input type="number" id="node-code-timeout" placeholder="PIN's delay">
+        <input type="number" id="node-code-timeout" placeholder="5000">
     </div>
 </script>
 
@@ -936,7 +932,7 @@
     <p> Dtmf received</p>
     <p>Input and output node.</p>
     <p>
-        Listen an opened channel, output DTMF digit and verify DTMF PIN entered.
+        Listen an opened channel, output DTMF and verify DTMF PIN entered.
     </p>
 
     <h3>Input</h3>
@@ -975,10 +971,10 @@
         </dd>
         <dt>dtmf</dt>
         <dd>
-            <p>Output an object called <b>msg</b> when a dtmf message is received
+            <p>Output an object called <b>msg</b> when a DTMF message is received
                 msg is composed of
             <ul>
-                <li><b>digit</b> dtmf received ex : 4 (string), </li>
+                <li><b>dtmf</b> dtmf received ex : 4 (string), </li>
                 <li><b>event</b> name (string), </li>
                 <li><b>app</b> name (string), </li>
                 <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
@@ -1034,6 +1030,82 @@
             The id of the Asterisk server to use.
         </dd>
     </dl>
- </script>
 
+ </script>
 <!-- ari_dtmf_listen section  end                                                -->
+
+<!-- ari_dtmf_send section  start                                                -->
+<script type="text/javascript">
+    RED.nodes.registerType('ari_sendDTMF', {
+        category: 'asterisk',
+        color: '#66ff66',
+        icon: 'font-awesome/fa-asterisk',
+        defaults: {
+            name: { value: "SendDTMF" },
+            dtmf: { value: "" }
+        },
+        inputs: 1,
+        outputs: 1,
+        outputLabels: ["dtmf"],
+        label: function () {
+            return this.name || "SendDTMF";
+        },
+        palletteLabel: "SendDTMF"
+    });
+</script>
+
+<script type="text/html" data-template-name="ari_sendDTMF">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i>Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<!-- Next, some simple help text is provided for the node.                   -->
+<script type="text/html" data-help-name="ari_sendDTMF">
+    <p> sendDTMF</p>
+    <p>Input and output node.</p>
+    <p>
+    
+    </p>
+
+    <h3>Input</h3>
+    <dl class="message-properties">
+        <dt>1</dt>
+        <dd>
+            <p>Input an  <b>msg</b>  composed of
+            <ul>
+                <li><b>dtmf</b> DTMF  to send (string), </li>
+                <li><b>event</b> name (string), </li>
+                <li><b>app</b> name (string), </li>
+                <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
+                <li><b>channelId</b> identifier of channel (string) - optional</li>
+                <li><b>payload</b> event (object)</li>
+                <li><b>_msgid</b> (string).</li>
+            </ul>
+            </p>
+        </dd>
+    </dl>
+
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>end</dt>
+        <dd>
+            <p>Output an object called <b>msg</b> when the sendDTMF is processed
+                msg is composed of
+            <ul>
+                <li><b>dtmf</b> DTMF sent (string), </li>
+                <li><b>event</b> name (string), </li>
+                <li><b>app</b> name (string), </li>
+                <li><b>asteriskId</b> identifier of ari asterisk connection (string),</li>
+                <li><b>channelId</b> identifier of channel (string) - optional</li>
+                <li><b>payload</b> event (object)</li>
+                <li><b>_msgid</b> (string).</li>
+            </ul>
+            </p>
+        </dd>
+        
+    </dl>
+
+ </script>
+<!-- ari_sendDTMF section  end                                                -->

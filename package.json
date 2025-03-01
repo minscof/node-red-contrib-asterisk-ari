@@ -1,6 +1,6 @@
 {
   "name": "@minscof/node-red-contrib-asterisk-ari",
-  "version": "2025.1.5",
+  "version": "2025.1.6",
   "description": "Package for Controlling Asterisk via ARI",
   "homepage": "https://github.com/minscof/node-red-contrib-asterisk-ari/",
   "bugs": {
@@ -39,12 +39,12 @@
       "ari_hangup": "nodes/ari_hangup.js",
       "ari_continueindialplan": "nodes/ari_continueindialplan.js",
       "ari_dtmf_listen": "nodes/ari_dtmf_listen.js",
+      "ari_sendDTMF": "nodes/ari_dtmf_send.js",
       "server": "server.js"
     }
   },
   "dependencies": {
     "@ipcom/asterisk-ari": "^0.0.158"
   },
-  "resolutions": {
-  }
+  "resolutions": {}
 }
