@@ -16,11 +16,11 @@ module.exports = function (RED) {
                 "StasisStart",
                 "StasisEnd"
             ];
-            console.debug(`originate static output endpoint (node)  = ${n.destination} `)
+            console.debug(`${node.type} static output endpoint (node)  = ${n.destination} `)
             const destination = msg.payload.destination ?? n.destination;
-            console.debug(`originate call endpoint = ${destination} `);
+            console.debug(`${node.type} call endpoint = ${destination} `);
             const callee = destination.includes('/') ? destination.split('/')[1].split('@')[0] : null;
-            console.debug(`originate call destination = ${destination} callee = ${callee}`);
+            console.debug(`${node.type} call destination = ${destination} callee = ${callee}`);
             if (!destination) {
                 node.error("destination undefined");
                 node.status({});

@@ -15,13 +15,13 @@ module.exports = function (RED) {
                 node.app = msg.app;
                 const channel = connectionPool.getchan(msg.channelId);
                 if (!channel) {
-                    const txt = `Hangup channel: ${msg.channelId} not found`;
-                    console.debug(txt);
-                    node.error(txt);
+                    const errorMessage = `${node.type} channel: ${msg.channelId} not found`;
+                    console.debug(errorMessage);
+                    node.error(errorMessage);
                     node.status({});
                     return;
                 }
-                console.debug(`Hangup channel: ${channel?.id}`);
+                console.debug(`${node.type} channel: ${channel?.id}`);
                 channel.on('ChannelDestroyed', event => {
                     //TODO event not catched !
                     //console.log('ChannelDestroyed channel:', event);
@@ -35,7 +35,7 @@ module.exports = function (RED) {
                 msg.event = 'Hangup';
                 node.send(msg);
                 node.status({});
-                console.debug(`Hangup ended`);
+                console.debug(`${node.type} Hangup ended`);
             } catch (err) {
                 console.error(`Hangup error channel: ${msg.channelId}`, err);
                 node.error(err);
@@ -45,8 +45,7 @@ module.exports = function (RED) {
             };
             
         });
-        //console.debug(`ari_hangup : after channel.hangup channel=`, channel.channelData);
-
+        
         this.on("close", function () {
             // Called when the node is shutdown - eg on redeploy.
             // Allows ports to be closed, connections dropped etc.
