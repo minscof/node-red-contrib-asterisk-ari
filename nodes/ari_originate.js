@@ -42,6 +42,7 @@ module.exports = function (RED) {
                     return;
                 }
                 console.log('Channel created:', channel.id);
+                
                 console.log("📞 Trying to call...");
                 await channel.originate({
                     endpoint: destination,

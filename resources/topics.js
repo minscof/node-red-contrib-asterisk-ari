@@ -51,13 +51,28 @@ const listenerDefaultTopics = [
     "ChannelCreated",
     "ChannelDestroyed",
     "ChannelStateChange",
-    "ChannelDtmfReceived",
+    //"ChannelDtmfReceived",
     "ChannelDialplan",
     "ChannelCallerId",
     "PeerStatusChange"
 ];
 
-const originateDefaultTopics = listenerDefaultTopics;
+const originateDefaultTopics = [
+    "StasisStart",
+    "StasisEnd",
+    "DeviceStateChanged",
+    "EndpointStateChange",
+    "Dial",
+    "ChannelConnectedLine",
+    "ChannelHangupRequest",
+    "ChannelCreated",
+    "ChannelDestroyed",
+    "ChannelStateChange",
+    "ChannelDialplan",
+    "ChannelCallerId",
+    "PeerStatusChange"
+];
+
 
 const defaultTopicsNodeType = { 'ari_listener': listenerDefaultTopics,
                                 'ari_originate': originateDefaultTopics };
