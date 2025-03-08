@@ -1,20 +1,19 @@
 # node-red-contrib-asterisk-ari
 
 
-<span style="color:green">This module is a fork from [Sam Machin](https://github.com/sammachin/nodered-asterisk-ari)</span>
+This is a module for nodered to manage Asterisk IPBX communications.
 
-node-red-contrib-asterisk-ari is a module for nodered to manage Asterisk IPBX communications.
-
-It allows to use Stasis application and theses functions :  
-- listener 
-answer
-- continueInDialplan
+It allows to use Stasis application and these functions :  
+- listen
+- originate
+- answer
 - playback
 - hangup
-- originate
+- bridgedial : receive a call then dial to connect caller
 - dtmf listen
 - dtmf send
-- bridgedial : receive a call then dial to connect caller
+- continueInDialplan
+
   
 It uses Rest api from Asterisk : ari
 
@@ -100,7 +99,7 @@ output example application node, event StasisStart
 ```
 
 ## Limitation
-Can not send dtmf or record a call
+Can not mange bridge or record a call
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
@@ -157,3 +156,6 @@ node --inspect $(which node-red)
 
 test : http://127.0.0.1:1880/
 
+## Credits
+
+This project was generated from <span style="color:green">[Sam Machin](https://github.com/sammachin/nodered-asterisk-ari)</span>

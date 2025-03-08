@@ -1,6 +1,6 @@
 {
   "name": "@minscof/node-red-contrib-asterisk-ari",
-  "version": "2025.1.6",
+  "version": "2025.1.8",
   "description": "Package for Controlling Asterisk via ARI",
   "homepage": "https://github.com/minscof/node-red-contrib-asterisk-ari/",
   "bugs": {
@@ -31,7 +31,7 @@
     "version": ">=3.1.1",
     "nodes": {
       "main": "main.js",
-      "ari_listener": "nodes/ari_listener.js",
+      "ari_listen": "nodes/ari_listen.js",
       "ari_originate": "nodes/ari_originate.js",
       "ari_answer": "nodes/ari_answer.js",
       "ari_bridgedial": "nodes/ari_bridgedial.js",
@@ -44,7 +44,7 @@
     }
   },
   "dependencies": {
-    "@ipcom/asterisk-ari": "^0.0.158"
+    "@ipcom/asterisk-ari": "^0.0.159"
   },
   "resolutions": {}
 }
