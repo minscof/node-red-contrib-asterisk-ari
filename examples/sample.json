@@ -241,9 +241,9 @@
     },
     {
         "id": "637783170de26f60",
-        "type": "ari_listener",
+        "type": "ari_listen",
         "z": "b283eef3.e91d1",
-        "name": "Listener",
+        "name": "Listen",
         "server": "f8d9ef1673cd981b",
         "app": "attendant",
         "topics": [

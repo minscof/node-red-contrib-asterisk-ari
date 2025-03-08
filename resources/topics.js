@@ -40,7 +40,7 @@ const availableTopics = [
     "RecordingFailed"
 ];
 
-const listenerDefaultTopics = [
+const listenDefaultTopics = [
     "StasisStart",
     "StasisEnd",
     "DeviceStateChanged",
@@ -74,7 +74,7 @@ const originateDefaultTopics = [
 ];
 
 
-const defaultTopicsNodeType = { 'ari_listener': listenerDefaultTopics,
+const defaultTopicsNodeType = { 'ari_listen': listenDefaultTopics,
                                 'ari_originate': originateDefaultTopics };
 
 

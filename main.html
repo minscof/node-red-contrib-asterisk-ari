@@ -64,12 +64,12 @@
 </script>
 
 <script type="text/javascript">
-    RED.nodes.registerType('ari_listener', {
+    RED.nodes.registerType('ari_listen', {
         category: 'asterisk',
         color: '#989898',
         icon: 'font-awesome/fa-asterisk',
         defaults: {
-            name: { value: "Listener" },
+            name: { value: "Listen" },
             server: { value: "", type: "asterisk_ari", required: true },
             app: { value: "" },
             topics: { value: "" }
@@ -106,7 +106,7 @@
     });
 </script>
 
-<script type="text/html" data-template-name="ari_listener">
+<script type="text/html" data-template-name="ari_listen">
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
@@ -129,13 +129,13 @@
 </script>
 
 <!-- Next, some simple help text is provided for the node.                   -->
-<script type="text/html" data-help-name="ari_listener">
+<script type="text/html" data-help-name="ari_listen">
 <!-- data-help-name identifies the node type this help is for             -->
 <!-- This content appears in the Info sidebar when a node is selected     -->
 <!-- The first <p> is used as the pop-up tool tip when hovering over a    -->
 <!-- node in the palette. 
                                                                            -->
-<p>Listener</p>
+<p>Listen</p>
 <p>This Node-RED node listens to configured events (topics) from an Asterisk Stasis application and emits messages
     accordingly.</p>
 

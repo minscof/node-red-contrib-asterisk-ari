@@ -14,7 +14,7 @@ module.exports = function (RED) {
         }
     }
     
-    function ari_listener(n) {
+    function ari_listen(n) {
         RED.nodes.createNode(this, n);
         const node = this;
         node.name = n.name || node.type;
@@ -26,8 +26,8 @@ module.exports = function (RED) {
         
         initializeNode(this, node);
     }
-    RED.nodes.registerType("ari_listener", ari_listener);
+    RED.nodes.registerType("ari_listen", ari_listen);
 
     //deprecated
-    RED.nodes.registerType("ari_incoming", ari_listener);
+    RED.nodes.registerType("ari_listener", ari_listen);
 }
